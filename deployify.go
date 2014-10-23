@@ -1,0 +1,77 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"path"
+	"path/filepath"
+)
+
+const (
+	svdir = "/etc/sv"
+)
+
+type config struct {
+	CanaryRatio            float64
+	CanaryTimeoutTolerance float64
+	ChunkRatio             float64
+	TimeoutTolerance       float64
+	Timeout                int
+	Pattern                string
+}
+
+func (c config) AssertValid() {
+	if c.Pattern == "" {
+		log.Fatal("-pattern must be provided")
+	}
+}
+
+func main() {
+	var (
+		canaryRatio            = flag.Float64("canary-ratio", 0.001, "canary nodes are restarted first. If they fail, the deploy is failed. Rounded up to the nearest node, unless set to zero")
+		canaryTimeoutTolerance = flag.Float64("canary-success-threshold", 0, "ratio of canary nodes that are permitted to time out without causing the deploy to fail")
+		chunkRatio             = flag.Float64("chunk-ratio", 0.2, "after canary nodes, ratio of remaining nodes permitted to restart concurrently")
+		timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
+		timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
+		pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/sv entries (e.g. \"borg-shopify-*\")")
+	)
+	flag.Parse()
+
+	config := config{
+		CanaryRatio:            *canaryRatio,
+		CanaryTimeoutTolerance: *canaryTimeoutTolerance,
+		ChunkRatio:             *chunkRatio,
+		TimeoutTolerance:       *timeoutTolerance,
+		Timeout:                *timeout,
+		Pattern:                *pattern,
+	}
+	config.AssertValid()
+
+	os.Exit(run(config))
+}
+
+func run(c config) int {
+	services, err := GetServices(c.Pattern)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(services)
+	return 0
+}
+
+func GetServices(pattern string) (services []string, err error) {
+	var fullpaths []string
+	fullpaths, err = globServices(svdir + "/" + pattern)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range fullpaths {
+		services = append(services, path.Base(p))
+	}
+	return
+}
+
+var globServices = filepath.Glob
