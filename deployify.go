@@ -6,6 +6,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -24,9 +25,30 @@ type config struct {
 	Timeout                int
 }
 
-func (c config) AssertValid() {
+func (c config) AssertValid(pattern string) {
+	msg := ""
+	if pattern == "" {
+		msg = "-pattern must be provided"
+	}
 	if c.ChunkRatio < c.CanaryRatio {
-		log.Fatal("-chunk-ratio must be >= -canary-ratio. This is not an inherent limitation, feel free to add code to handle this case.")
+		msg = "-chunk-ratio must be >= -canary-ratio. This is not an inherent limitation, feel free to add code to handle this case."
+	}
+	if msg != "" {
+		fmt.Println(msg)
+		flag.Usage()
+		os.Exit(1)
+	}
+}
+
+func init() {
+	oldUsage := flag.Usage
+	flag.Usage = func() {
+		oldUsage()
+		fmt.Fprintf(os.Stderr, "Examples:\n")
+		fmt.Fprintln(os.Stderr, "  # Restart one service first. Restart everything else once it succeeds. No timeouts allowed, wait up to 5 minutes for restarts.")
+		fmt.Fprintln(os.Stderr, "  "+os.Args[0]+" -canary-ratio 0.0001 -chunk-ratio 1 -timeout 300 -pattern 'borg-*'")
+		fmt.Fprintln(os.Stderr, "  # Restart 10% of services first, allowing up to 50% of those to time out. Then, restart all other services, 30% at a time, allowing up to 70% to time out.")
+		fmt.Fprintln(os.Stderr, "  "+os.Args[0]+" -canary-ratio 0.1 -chunk-ratio 0.3 -canary-timeout-tolerance 0.5 -timeout-tolerance 0.7 -timeout 300 -pattern 'borg-*'")
 	}
 }
 
@@ -48,10 +70,7 @@ func main() {
 		TimeoutTolerance:       *timeoutTolerance,
 		Timeout:                *timeout,
 	}
-	config.AssertValid()
-	if *pattern == "" {
-		log.Fatal("-pattern must be provided")
-	}
+	config.AssertValid(*pattern)
 
 	os.Exit(run(*pattern, config))
 }
