@@ -16,11 +16,10 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return nil, nil
 		}
-		results := make(chan error, 8)
-		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1, results: results}
+		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get a nil and a success message should be printed", func() {
-			svr.Restart()
-			So(<-results, ShouldBeNil)
+			err := svr.Restart()
+			So(err, ShouldBeNil)
 			So(logs, ShouldResemble, []string{
 				"[2/3] (/etc/sv/my-test-service) restarting",
 				"[2/3] (/etc/sv/my-test-service) successfully restarted",
@@ -33,11 +32,9 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return exec.Command("sh", "-c", "echo failed && false").Output()
 		}
-		results := make(chan error, 8)
-		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1, results: results}
+		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get an error and a message should be printed", func() {
-			svr.Restart()
-			err := <-results
+			err := svr.Restart()
 			So(err.(ErrRestartFailed), ShouldNotBeNil)
 			So(logs, ShouldResemble, []string{
 				"[2/3] (/etc/sv/my-test-service) restarting",
@@ -51,11 +48,9 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return exec.Command("sh", "-c", "echo 'timeout: run: stuff' && false").Output()
 		}
-		results := make(chan error, 8)
-		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1, results: results}
+		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get an error and a message should be printed", func() {
-			svr.Restart()
-			err := <-results
+			err := svr.Restart()
 			So(err.(ErrRestartTimeout), ShouldNotBeNil)
 			So(logs, ShouldResemble, []string{
 				"[2/3] (/etc/sv/my-test-service) restarting",

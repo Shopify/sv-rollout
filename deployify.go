@@ -1,3 +1,7 @@
+/*
+deployify is a utility to restart multiple runit services concurrently. It
+supports canaries and has configurable tolerance for timeouts.
+*/
 package main
 
 import (
@@ -18,12 +22,11 @@ type config struct {
 	ChunkRatio             float64
 	TimeoutTolerance       float64
 	Timeout                int
-	Pattern                string
 }
 
 func (c config) AssertValid() {
-	if c.Pattern == "" {
-		log.Fatal("-pattern must be provided")
+	if c.ChunkRatio < c.CanaryRatio {
+		log.Fatal("-chunk-ratio must be >= -canary-ratio. This is not an inherent limitation, feel free to add code to handle this case.")
 	}
 }
 
@@ -46,6 +49,9 @@ func main() {
 		Timeout:                *timeout,
 	}
 	config.AssertValid()
+	if *pattern == "" {
+		log.Fatal("-pattern must be provided")
+	}
 
 	os.Exit(run(*pattern, config))
 }

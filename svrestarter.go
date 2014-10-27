@@ -7,32 +7,17 @@ import (
 	"strings"
 )
 
-type ErrRestartTimeout struct {
-	Service string
-}
-
-func (e ErrRestartTimeout) Error() string {
-	return fmt.Sprintf("restart timed out for service '%s'", e.Service)
-}
-
-type ErrRestartFailed struct {
-	Service string
-	Message string
-}
-
-func (e ErrRestartFailed) Error() string {
-	return fmt.Sprintf("restart failed for service '%s': %s", e.Service, e.Message)
-}
-
+// SvRestarter is a simple object that restarts a single runit service.
 type SvRestarter struct {
 	Service   string
 	nServices int
 	index     int
 	timeout   int
-	results   chan error
 }
 
-func (s *SvRestarter) Restart() {
+// Restart shells out to runit to restart the service, and logs messages before
+// and after indicating the relevant status.
+func (s *SvRestarter) Restart() error {
 	s.log("restarting")
 	out, err := restartCmd(fmt.Sprintf("%d", s.timeout), s.Service)
 
@@ -44,6 +29,7 @@ func (s *SvRestarter) Restart() {
 		}
 	}
 	s.notifyResult(err)
+	return err
 }
 
 func (s *SvRestarter) notifyResult(result error) {
@@ -57,7 +43,6 @@ func (s *SvRestarter) notifyResult(result error) {
 	default:
 		panic(result)
 	}
-	s.results <- result
 }
 
 func (s *SvRestarter) log(message string) {
