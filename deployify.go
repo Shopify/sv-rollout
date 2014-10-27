@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -31,7 +30,7 @@ func (c config) AssertValid() {
 func main() {
 	var (
 		canaryRatio            = flag.Float64("canary-ratio", 0.001, "canary nodes are restarted first. If they fail, the deploy is failed. Rounded up to the nearest node, unless set to zero")
-		canaryTimeoutTolerance = flag.Float64("canary-success-threshold", 0, "ratio of canary nodes that are permitted to time out without causing the deploy to fail")
+		canaryTimeoutTolerance = flag.Float64("canary-timeout-tolerance", 0, "ratio of canary nodes that are permitted to time out without causing the deploy to fail")
 		chunkRatio             = flag.Float64("chunk-ratio", 0.2, "after canary nodes, ratio of remaining nodes permitted to restart concurrently")
 		timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
 		timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
@@ -45,24 +44,26 @@ func main() {
 		ChunkRatio:             *chunkRatio,
 		TimeoutTolerance:       *timeoutTolerance,
 		Timeout:                *timeout,
-		Pattern:                *pattern,
 	}
 	config.AssertValid()
 
-	os.Exit(run(config))
+	os.Exit(run(*pattern, config))
 }
 
-func run(c config) int {
-	services, err := GetServices(c.Pattern)
+func run(servicePattern string, c config) int {
+	services, err := getServices(servicePattern)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(services)
+	d := NewDeployment(services, c)
+	if err := d.Run(); err != nil {
+		return 1
+	}
 	return 0
 }
 
-func GetServices(pattern string) (services []string, err error) {
+func getServices(pattern string) (services []string, err error) {
 	var fullpaths []string
 	fullpaths, err = globServices(svdir + "/" + pattern)
 	if err != nil {
