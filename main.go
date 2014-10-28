@@ -25,6 +25,8 @@ type config struct {
 	Timeout                int
 }
 
+var Verbose bool
+
 func (c config) AssertValid(pattern string) {
 	msg := ""
 	if pattern == "" {
@@ -60,6 +62,7 @@ func main() {
 		timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
 		timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
 		pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/sv entries (e.g. \"borg-shopify-*\")")
+		verbose                = flag.Bool("verbose", false, "print more information about what's going on")
 	)
 	flag.Parse()
 
@@ -71,6 +74,12 @@ func main() {
 		Timeout:                *timeout,
 	}
 	config.AssertValid(*pattern)
+
+	Verbose = *verbose
+
+	if Verbose {
+		log.Printf("[debug] initializing with pattern=%s, config %#v", *pattern, config)
+	}
 
 	os.Exit(run(*pattern, config))
 }
