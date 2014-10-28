@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDeployify(t *testing.T) {
+func TestSvRollout(t *testing.T) {
 
 	Convey("Enumerating services", t, func() {
 		defer func() {
