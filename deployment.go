@@ -103,21 +103,19 @@ func (d *Deployment) restartCanaries() (err error) {
 		switch result.(type) {
 		case nil:
 			d.successesSoFar++
+			if d.canarySuccessOK() {
+				return nil
+			}
 		case ErrRestartFailed:
-			d.failuresSoFar++
+			if err = d.incrementFailures(); err != nil {
+				return
+			}
 		case ErrRestartTimeout:
-			d.timeoutsSoFar++
+			if err = d.incrementTimeouts(); err != nil {
+				return
+			}
 		default:
 			panic(result)
-		}
-		if d.tooManyFailures() {
-			return ErrTooManyFailures
-		}
-		if d.tooManyTimeouts() {
-			return ErrTooManyTimeouts
-		}
-		if d.canarySuccessOK() {
-			return nil
 		}
 	}
 
@@ -137,17 +135,15 @@ func (d *Deployment) restartRemaining() (err error) {
 		case nil:
 			d.successesSoFar++
 		case ErrRestartFailed:
-			d.failuresSoFar++
+			if err = d.incrementFailures(); err != nil {
+				return
+			}
 		case ErrRestartTimeout:
-			d.timeoutsSoFar++
+			if err = d.incrementTimeouts(); err != nil {
+				return
+			}
 		default:
 			panic(result)
-		}
-		if d.tooManyFailures() {
-			return ErrTooManyFailures
-		}
-		if d.tooManyTimeouts() {
-			return ErrTooManyTimeouts
 		}
 		if d.allComplete() {
 			return nil
@@ -157,12 +153,20 @@ func (d *Deployment) restartRemaining() (err error) {
 	panic("unreachable")
 }
 
-func (d *Deployment) tooManyFailures() bool {
-	return d.failuresSoFar > d.currentFailuresPermitted
+func (d *Deployment) incrementFailures() error {
+	d.failuresSoFar++
+	if d.failuresSoFar > d.currentFailuresPermitted {
+		return ErrTooManyFailures
+	}
+	return nil
 }
 
-func (d *Deployment) tooManyTimeouts() bool {
-	return d.timeoutsSoFar > d.currentTimeoutsPermitted
+func (d *Deployment) incrementTimeouts() error {
+	d.timeoutsSoFar++
+	if d.timeoutsSoFar > d.currentTimeoutsPermitted {
+		return ErrTooManyTimeouts
+	}
+	return nil
 }
 
 func (d *Deployment) canarySuccessOK() bool {
