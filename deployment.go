@@ -69,12 +69,12 @@ func NewDeployment(services []string, config config) *Deployment {
 // the services with concurrency as indicated by ChunkRatio.
 func (d *Deployment) Run() (err error) {
 	d.startWorkers(len(d.canaryServices))
-	if err = d.restartCanaries(); err != nil {
+	if err = d.restartServices(d.canaryServices, 0, d.canaryTimeoutsPermitted, d.canarySuccessOK); err != nil {
 		return
 	}
 	delta := d.postCanaryConcurrency - len(d.canaryServices)
 	d.startWorkers(delta)
-	return d.restartRemaining()
+	return d.restartServices(d.postCanaryServices, 0, d.totalTimeoutsPermitted, d.allComplete)
 }
 
 func (d *Deployment) startWorkers(n int) {
@@ -89,44 +89,14 @@ func (d *Deployment) startWorker() {
 	}
 }
 
-func (d *Deployment) restartCanaries() (err error) {
-	d.currentFailuresPermitted = 0
-	d.currentTimeoutsPermitted = d.canaryTimeoutsPermitted
-	if len(d.canaryServices) == 0 {
+func (d *Deployment) restartServices(services []string, failuresPermitted, timeoutsPermitted int, done func() bool) (err error) {
+	d.currentFailuresPermitted = failuresPermitted
+	d.currentTimeoutsPermitted = timeoutsPermitted
+
+	if len(services) == 0 {
 		return nil
 	}
-	for _, svc := range d.canaryServices {
-		d.servicesToRestart <- svc
-	}
-
-	for result := range d.results {
-		switch result.(type) {
-		case nil:
-			d.successesSoFar++
-			if d.canarySuccessOK() {
-				return nil
-			}
-		case ErrRestartFailed:
-			if err = d.incrementFailures(); err != nil {
-				return
-			}
-		case ErrRestartTimeout:
-			if err = d.incrementTimeouts(); err != nil {
-				return
-			}
-		default:
-			panic(result)
-		}
-	}
-
-	panic("unreachable")
-}
-
-func (d *Deployment) restartRemaining() (err error) {
-	d.currentFailuresPermitted = 0
-	d.currentTimeoutsPermitted = d.totalTimeoutsPermitted
-
-	for _, svc := range d.postCanaryServices {
+	for _, svc := range services {
 		d.servicesToRestart <- svc
 	}
 
@@ -145,7 +115,7 @@ func (d *Deployment) restartRemaining() (err error) {
 		default:
 			panic(result)
 		}
-		if d.allComplete() {
+		if done() {
 			return nil
 		}
 	}
