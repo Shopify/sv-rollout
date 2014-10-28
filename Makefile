@@ -1,6 +1,6 @@
 .PHONY: gofmt govet test errcheck ensure-errcheck ensure-godep clean testserver golint ensure-golint
 
-default: gofmt golint govet test deployify errcheck
+default: gofmt golint govet test sv-rollout errcheck
 
 testserver:
 	env GOPATH=$$(godep path):$(GOPATH) goconvey
@@ -14,11 +14,11 @@ govet:
 test: ensure-godep
 	godep go test ./...
 
-deployify: ensure-godep
+sv-rollout: ensure-godep
 	godep go build -o $@ .
 
 errcheck: ensure-errcheck
-	env GOPATH="$$(godep path):$(GOPATH)" errcheck github.com/Shopify/deployify
+	env GOPATH="$$(godep path):$(GOPATH)" errcheck github.com/Shopify/sv-rollout
 
 golint: ensure-golint
 	find . -name '*.go' | grep -v Godep | xargs golint
@@ -33,4 +33,4 @@ ensure-godep:
 	if [[ -z "$(shell which godep)" ]]; then go get github.com/tools/godep; fi
 
 clean:
-	rm -f deployify
+	rm -f sv-rollout

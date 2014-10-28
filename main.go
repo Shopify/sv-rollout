@@ -1,5 +1,5 @@
 /*
-deployify is a utility to restart multiple runit services concurrently. It
+sv-rollout is a utility to restart multiple runit services concurrently. It
 supports canaries and has configurable tolerance for timeouts.
 */
 package main
