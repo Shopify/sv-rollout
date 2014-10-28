@@ -25,6 +25,8 @@ type config struct {
 	Timeout                int
 }
 
+// Verbose controls whether extra information is printed as choices are made.
+// It's set by the `-verbose` CLI flag.
 var Verbose bool
 
 func (c config) AssertValid(pattern string) {
