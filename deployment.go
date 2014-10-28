@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math"
 )
 
@@ -51,6 +52,13 @@ func NewDeployment(services []string, config config) *Deployment {
 
 	d.servicesToRestart = make(chan string, 8192)
 	d.results = make(chan error, 32)
+
+	if Verbose {
+		log.Printf("[debug] chose canaries: %v", d.canaryServices)
+		log.Printf("[debug] canaries permitted to time out: %d", d.canaryTimeoutsPermitted)
+		log.Printf("[debug] total timeouts permitted: %d", d.totalTimeoutsPermitted)
+		log.Printf("[debug] concurrency after canary phase: %d", d.postCanaryConcurrency)
+	}
 
 	return &d
 }
