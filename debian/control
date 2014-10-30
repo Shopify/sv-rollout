@@ -1,0 +1,16 @@
+Source: sv-rollout
+Section: admin
+Priority: optional
+Maintainer: Stack Team <stack-team@shopify.com>
+Build-Depends: debhelper (>= 8.0.0),
+               golang-go
+Standards-Version: 3.9.4
+Homepage: https://github.com/Shopify/sv-rollout
+Vcs-Git: git://github.com/Shopify/sv-rollout.git
+Vcs-Browser: https://github.com/Shopify/sv-rollout
+
+Package: sv-rollout
+Architecture: amd64 i386
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
