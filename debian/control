@@ -12,5 +12,8 @@ Vcs-Browser: https://github.com/Shopify/sv-rollout
 Package: sv-rollout
 Architecture: amd64 i386
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: restart multiple runit services concurrently and safely
+  sv-rollout is used to restart multiple runit services concurrently, a
+  configurable ratio of them to time out, with configurable concurrency, and
+  optionally "canaries", which are restarted before the rest of the services.
+
