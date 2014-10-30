@@ -1,13 +1,13 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
 export GOPATH=$(CURDIR)/Godeps/_workspace
 
 BINNAME=$(shell basename $(CURDIR))
 
-PKGDIR=debian/sv-rollout
+PKGDIR=debian/$(BINNAME)
 
 %:
 	dh $@ 
@@ -20,7 +20,6 @@ clean:
 binary-arch: clean
 	dh_prep
 	dh_installdirs
-	go build -o $(BINNAME) .
 	mkdir -p $(PKGDIR)/usr/bin
 	cp $(BINNAME) $(PKGDIR)/usr/bin/
 	dh_strip
@@ -33,3 +32,8 @@ binary-arch: clean
 
 binary: binary-arch
 
+override_dh_auto_build:
+	go build -o $(BINNAME) .
+
+override_dh_auto_test:
+	go test ./...
