@@ -2,7 +2,7 @@ Source: sv-rollout
 Section: admin
 Priority: optional
 Maintainer: Stack Team <stack-team@shopify.com>
-Build-Depends: debhelper (>= 8.0.0), go
+Build-Depends: debhelper (>= 8.0.0), go | golang-go
 Standards-Version: 3.9.4
 Homepage: https://github.com/Shopify/sv-rollout
 Vcs-Git: git://github.com/Shopify/sv-rollout.git
