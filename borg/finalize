@@ -2,6 +2,8 @@
 set -xeuo pipefail
 
 LSB_RELEASE="lucid"
+APPNAME="$(cat /app/APPNAME)"
+test "${APPNAME}"
 
 cleanup() {
   sudo rm -rf /workspace
@@ -19,11 +21,11 @@ gen_version() {
 setup_workspace() {
   sudo mkdir /workspace
   sudo chown -R borg:borg /workspace
-  cp -a /app /workspace/sv-rollout
+  cp -a /app "/workspace/${APPNAME}"
 }
 
 install_build_deps() {
-  cd /workspace/sv-rollout/debian
+  cd "/workspace/${APPNAME}/debian"
   mk-build-deps control
   sudo dpkg -i *.deb || true
   sudo apt-get -f -y install
@@ -31,7 +33,7 @@ install_build_deps() {
 
 build_deb() {
   local version=$1;shift
-  cd /workspace/sv-rollout/debian
+  cd "/workspace/${APPNAME}/debian"
 
   dch \
     --newversion "${version}" \
@@ -45,8 +47,8 @@ build_deb() {
 inspect() {
   ls -lsa /workspace
   sudo dpkg -i /workspace/*.deb
-  dpkg-query -L sv-rollout
-  man sv-rollout
+  cat /workspace/*.changes
+  dpkg-query -L "${APPNAME}"
 }
 
 main() {
