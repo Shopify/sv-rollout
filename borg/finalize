@@ -10,6 +10,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
+setup_ssh_keys() {
+  mkdir ~/.ssh
+  ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["privkey"]' > ~/.ssh/id_rsa
+  ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["pubkey"]' > ~/.ssh/id_rsa.pub
+  chmod 0400 ~/.ssh/id_rsa
+}
+
 gen_version() {
   local version="$(cat /app/VERSION)"
   local revision="$(cat /app/REVISION)"
@@ -58,6 +65,7 @@ upload_deb() {
 
 main() {
   local version="$(gen_version)"
+  setup_ssh_keys
   setup_workspace
   install_build_deps
   build_deb "${version}"
