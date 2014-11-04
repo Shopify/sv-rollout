@@ -14,7 +14,7 @@ setup_workspace() {
 
 install_build_deps() {
   cd /workspace/sv-rollout/debian
-  mk-build-deps
+  mk-build-deps control
   sudo dpkg -i *.deb || true
   sudo apt-get -f -y install
 }
