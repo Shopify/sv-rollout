@@ -7,7 +7,8 @@ cleanup() {
 trap cleanup EXIT
 
 setup_workspace() {
-  mkdir /workspace
+  sudo mkdir /workspace
+  sudo chown -R borg:borg /workspace
   ln -s /app /workspace/sv-rollout
 }
 
