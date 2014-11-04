@@ -1,4 +1,5 @@
 #!/bin/bash
+[[ "$1" != "final" ]] || exit 0
 set -xeuo pipefail
 
 LSB_RELEASE="trusty"
