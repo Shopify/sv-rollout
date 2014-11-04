@@ -29,7 +29,6 @@ inspect() {
   ls -lsa /workspace
   sudo dpkg -i /workspace/*.deb
   dpkg-query -L sv-rollout
-  sv-rollout --help
   man sv-rollout
 }
 
