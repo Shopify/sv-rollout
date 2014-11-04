@@ -1,0 +1,42 @@
+#!/bin/bash
+set -xeuo pipefail
+
+cleanup() {
+  rm -rf /workspace
+}
+trap cleanup EXIT
+
+setup_workspace() {
+  mkdir /workspace
+  ln -s /app /workspace/sv-rollout
+}
+
+install_build_deps() {
+  cd /workspace/sv-rollout/debian
+  mk-build-deps
+  sudo dpkg -i *.deb || true
+  sudo apt-get -f -y install
+}
+
+build_deb() {
+  cd /workspace/sv-rollout/debian
+  dch "Release for multiple platforms"
+  debuild -i -us -uc -b
+}
+
+inspect() {
+  ls -lsa /workspace
+  sudo dpkg -i /workspace/*.deb
+  dpkg-query -L sv-rollout
+  sv-rollout --help
+  man sv-rollout
+}
+
+main() {
+  setup_workspace
+  install_build_deps
+  build_deb
+  inspect
+}
+main "$@"
+
