@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-LSB_RELEASE="lucid"
+LSB_RELEASE="trusty"
 APPNAME="$(cat /app/APPNAME)"
 test "${APPNAME}"
 
@@ -52,12 +52,17 @@ inspect() {
   man "${APPNAME}"
 }
 
+upload_deb() {
+  ruby /app/borg/upload_deb.rb /workspace
+}
+
 main() {
   local version="$(gen_version)"
   setup_workspace
   install_build_deps
   build_deb "${version}"
   inspect
+  upload_deb
 }
 main "$@"
 
