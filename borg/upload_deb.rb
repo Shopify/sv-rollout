@@ -48,7 +48,7 @@ class AptUpload
     ssh_target   = UPLOAD_USER + '@' + UPLOAD_HOST
     rsync_target = ssh_target + ':' + temp_path + '/'
 
-    Dir.mktmpdir(nil, File.dirname(File.dirname(file))) do |tempdir|
+    Dir.mktmpdir(nil, "/tmp") do |tempdir|
       files = process_changes(file, tempdir)
       File.chmod(0755, tempdir)
 
