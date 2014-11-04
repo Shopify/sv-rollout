@@ -1,10 +1,20 @@
 #!/bin/bash
 set -xeuo pipefail
 
+LSB_RELEASE="lucid"
+
 cleanup() {
   sudo rm -rf /workspace
 }
 trap cleanup EXIT
+
+gen_version() {
+  local version="$(cat /app/VERSION)"
+  local revision="$(cat /app/REVISION)"
+  test "${version}"
+  test "${revision}"
+  echo "${version}-${revision:0:8}" # eg: 1.0-deadbeef
+}
 
 setup_workspace() {
   sudo mkdir /workspace
@@ -20,8 +30,15 @@ install_build_deps() {
 }
 
 build_deb() {
+  local version=$1;shift
   cd /workspace/sv-rollout/debian
-  dch "Release for multiple platforms"
+
+  dch \
+    --newversion "${version}" \
+    --force-bad-version \
+    -D "${LSB_RELEASE}" \
+    "Release for ${LSB_RELEASE}"
+
   debuild -i -us -uc -b
 }
 
@@ -33,9 +50,10 @@ inspect() {
 }
 
 main() {
+  local version="$(gen_version)"
   setup_workspace
   install_build_deps
-  build_deb
+  build_deb "${version}"
   inspect
 }
 main "$@"
