@@ -2,7 +2,7 @@
 set -xeuo pipefail
 
 cleanup() {
-  rm -rf /workspace
+  sudo rm -rf /workspace
 }
 trap cleanup EXIT
 
