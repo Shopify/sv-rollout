@@ -6,6 +6,6 @@ apt-get install -y --no-install-recommends \
   build-essential \
   equivs \
   devscripts \
-  openssh
+  openssh-server
 
 echo "borg ALL = NOPASSWD: ALL" > /etc/sudoers.d/borg-needs-sudo
