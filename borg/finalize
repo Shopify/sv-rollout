@@ -9,7 +9,7 @@ trap cleanup EXIT
 setup_workspace() {
   sudo mkdir /workspace
   sudo chown -R borg:borg /workspace
-  ln -s /app /workspace/sv-rollout
+  cp -a /app /workspace/sv-rollout
 }
 
 install_build_deps() {
