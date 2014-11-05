@@ -61,6 +61,7 @@ inspect() {
   cat /workspace/*.changes
   dpkg-query -L "${APPNAME}"
   man "${APPNAME}"
+  ssh apt-upload@apt.ec2.shopify.com "ls"
 }
 
 upload_deb() {
