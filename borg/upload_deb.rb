@@ -54,7 +54,7 @@ class AptUpload
 
       puts
       puts "Uploading #{files.count} files to #{temp_path} on #{UPLOAD_HOST} ..."
-      sh("rsync", "-dtP", "#{tempdir}/", rsync_target)
+      sh("rsync", "-e", "ssh -i /home/borg/.ssh/id_rsa", "-dtP", "#{tempdir}/", rsync_target)
 
       puts
       puts "Queuing for upload ..."

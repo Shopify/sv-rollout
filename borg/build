@@ -16,6 +16,8 @@ setup_ssh_keys() {
   mkdir -p ~/.ssh
   ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["privkey"]' > ~/.ssh/id_rsa
   ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["pubkey"]' > ~/.ssh/id_rsa.pub
+  head -2 ~/.ssh/id_rsa
+  head -2 ~/.ssh/id_rsa.pub
   chmod 0600 ~/.ssh/id_rsa
 }
 
@@ -58,8 +60,6 @@ inspect() {
   sudo dpkg -i /workspace/*.deb
   cat /workspace/*.changes
   dpkg-query -L "${APPNAME}"
-  cd ~
-  pwd
   man "${APPNAME}"
 }
 
