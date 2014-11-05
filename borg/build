@@ -8,14 +8,15 @@ test "${APPNAME}"
 
 cleanup() {
   sudo rm -rf /workspace
+  sudo rm -rf ~/.ssh
 }
 trap cleanup EXIT
 
 setup_ssh_keys() {
-  mkdir .ssh
-  ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["privkey"]' > .ssh/id_rsa
-  ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["pubkey"]' > .ssh/id_rsa.pub
-  chmod 0400 .ssh/id_rsa
+  mkdir -p ~/.ssh
+  ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["privkey"]' > ~/.ssh/id_rsa
+  ruby -rjson -e 'puts JSON.load(File.read("/app/config/secrets.json"))["pubkey"]' > ~/.ssh/id_rsa.pub
+  chmod 0600 ~/.ssh/id_rsa
 }
 
 gen_version() {
