@@ -58,6 +58,8 @@ inspect() {
   sudo dpkg -i /workspace/*.deb
   cat /workspace/*.changes
   dpkg-query -L "${APPNAME}"
+  cd ~
+  pwd
   man "${APPNAME}"
 }
 
