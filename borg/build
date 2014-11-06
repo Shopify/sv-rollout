@@ -86,7 +86,7 @@ main() {
   compile_manpages
   build_deb "${version}"
   inspect
-  upload_deb
+  #upload_deb
 }
 main "$@"
 
