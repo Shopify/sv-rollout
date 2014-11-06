@@ -42,6 +42,17 @@ install_build_deps() {
   sudo apt-get -f -y install
 }
 
+compile_manpages() {
+  cd "/workspace/${APPNAME}"
+  for ronnfile in man/*.ronn; do
+    # We should probably put rubygems on the container's PATH.
+    /usr/lib/shopify-ruby/2.1.3-shopify1/bin/ronn -r "${ronnfile}"
+  done
+  for manfile in $(ls man | grep -P '\.\d$'); do
+    echo "man/${manfile}" >> "debian/${APPNAME}.manpages"
+  done
+}
+
 build_deb() {
   local version=$1;shift
   cd "/workspace/${APPNAME}/debian"
@@ -61,7 +72,6 @@ inspect() {
   cat /workspace/*.changes
   dpkg-query -L "${APPNAME}"
   man "${APPNAME}"
-  ssh apt-upload@apt.ec2.shopify.com "ls"
 }
 
 upload_deb() {
@@ -73,6 +83,7 @@ main() {
   setup_ssh_keys
   setup_workspace
   install_build_deps
+  compile_manpages
   build_deb "${version}"
   inspect
   upload_deb

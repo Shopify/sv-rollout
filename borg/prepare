@@ -8,4 +8,6 @@ apt-get install -y --no-install-recommends \
   devscripts \
   openssh-server
 
+gem install ronn
+
 echo "borg ALL = NOPASSWD: ALL" > /etc/sudoers.d/borg-needs-sudo
