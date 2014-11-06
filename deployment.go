@@ -34,7 +34,7 @@ type Deployment struct {
 }
 
 // NewDeployment initializes a Deployment object with a list of services
-// (entries in /etc/sv typically) and a config object.
+// (entries in /etc/service typically) and a config object.
 func NewDeployment(services []string, config config) *Deployment {
 	var d Deployment
 	d.numServices = len(services)

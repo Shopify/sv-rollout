@@ -9,7 +9,7 @@ sv-rollout(8) -- restart multiple runit services concurrently
 
 **sv-rollout** is a utility to restart multiple runit services concurrently. It
 supports canaries and has configurable tolerance for timeouts. The only required
-option is `-pattern`, which is used to match entries in `/etc/sv` using a simple
+option is `-pattern`, which is used to match entries in `/etc/service` using a simple
 shell globbing parser (for example, you could pass `borg-*` to restart all borg
 services).
 
@@ -65,7 +65,7 @@ sv-rollout \
   -chunk-ratio 1 \                # after canaries, restart 100% concurrently
   -timeout-tolerance 0.8 \        # allow up to 80% of remaining to time out
   -timeout 300 \                  # wait up to 300s for each service before considering it "timed out"
-  -pattern 'borg-shopify-jobs-*'  # any services matching /etc/sv/<pattern>
+  -pattern 'borg-shopify-jobs-*'  # any services matching /etc/service/<pattern>
 ```
 
 ### App servers
@@ -79,7 +79,7 @@ sv-rollout \
   -chunk-ratio 0.2 \                # restart 20% of servers concurrently (ie.  no concurrency)
   -timeout-tolerance 0 \            # even a single timeout will abort the deploy
   -timeout 300 \                    # wait up to 300s for each service before considering it "timed out"
-  -pattern 'borg-shopify-unicorn-*' # any services matching /etc/sv/<pattern>
+  -pattern 'borg-shopify-unicorn-*' # any services matching /etc/service/<pattern>
 ```
 
 ## BUGS

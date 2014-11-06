@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	svdir = "/etc/sv"
+	svdir = "/etc/service"
 )
 
 type config struct {
@@ -62,7 +62,7 @@ var (
 	chunkRatio             = flag.Float64("chunk-ratio", 0.2, "after canary nodes, ratio of remaining nodes permitted to restart concurrently")
 	timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
 	timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
-	pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/sv entries (e.g. \"borg-shopify-*\")")
+	pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/service entries (e.g. \"borg-shopify-*\")")
 	verbose                = flag.Bool("verbose", false, "print more information about what's going on")
 )
 

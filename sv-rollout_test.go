@@ -14,7 +14,7 @@ func TestSvRollout(t *testing.T) {
 			globServices = filepath.Glob
 		}()
 		globServices = func(a string) ([]string, error) {
-			return []string{"/etc/sv/borg-shopify-test-1", "/etc/sv/borg-shopify-test-2"}, nil
+			return []string{"/etc/service/borg-shopify-test-1", "/etc/service/borg-shopify-test-2"}, nil
 		}
 		svcs, err := getServices("borg-shopify-*")
 

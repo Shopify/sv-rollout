@@ -9,7 +9,7 @@ Usage of sv-rollout:
   -canary-ratio=0.001: canary nodes are restarted first. If they fail, the deploy is failed. Rounded up to the nearest node, unless set to zero
   -canary-timeout-tolerance=0: ratio of canary nodes that are permitted to time out without causing the deploy to fail
   -chunk-ratio=0.2: after canary nodes, ratio of remaining nodes permitted to restart concurrently
-  -pattern="": (required) glob pattern to match /etc/sv entries (e.g. "borg-shopify-*")
+  -pattern="": (required) glob pattern to match /etc/service entries (e.g. "borg-shopify-*")
   -timeout=90: number of seconds to wait for a service to restart before considering it timed out and moving on
   -timeout-tolerance=0: ratio of total nodes whose restarts may time out and still consider the deploy a success
 Examples:
@@ -39,7 +39,7 @@ sv-rollout \
   -chunk-ratio 1 \                # after canaries, restart 100% concurrently
   -timeout-tolerance 0.8 \        # allow up to 80% of remaining to time out
   -timeout 300 \                  # wait up to 300s for each service before considering it "timed out"
-  -pattern 'borg-shopify-jobs-*'  # any services matching /etc/sv/<pattern>
+  -pattern 'borg-shopify-jobs-*'  # any services matching /etc/service/<pattern>
 ```
 
 #### App servers
@@ -53,6 +53,6 @@ sv-rollout \
   -chunk-ratio 0.2 \                # restart 20% of servers concurrently (ie.  no concurrency)
   -timeout-tolerance 0 \            # even a single timeout will abort the deploy
   -timeout 300 \                    # wait up to 300s for each service before considering it "timed out"
-  -pattern 'borg-shopify-unicorn-*' # any services matching /etc/sv/<pattern>
+  -pattern 'borg-shopify-unicorn-*' # any services matching /etc/service/<pattern>
 ```
 

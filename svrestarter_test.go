@@ -16,13 +16,13 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return nil, nil
 		}
-		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1}
+		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get a nil and a success message should be printed", func() {
 			err := svr.Restart()
 			So(err, ShouldBeNil)
 			So(logs, ShouldResemble, []string{
-				"[2/3] (/etc/sv/my-test-service) restarting",
-				"[2/3] (/etc/sv/my-test-service) successfully restarted",
+				"[2/3] (/etc/service/my-test-service) restarting",
+				"[2/3] (/etc/service/my-test-service) successfully restarted",
 			})
 		})
 	})
@@ -32,13 +32,13 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return exec.Command("sh", "-c", "echo failed && false").Output()
 		}
-		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1}
+		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get an error and a message should be printed", func() {
 			err := svr.Restart()
 			So(err.(ErrRestartFailed), ShouldNotBeNil)
 			So(logs, ShouldResemble, []string{
-				"[2/3] (/etc/sv/my-test-service) restarting",
-				"[2/3] (/etc/sv/my-test-service) failed to restart",
+				"[2/3] (/etc/service/my-test-service) restarting",
+				"[2/3] (/etc/service/my-test-service) failed to restart",
 			})
 		})
 	})
@@ -48,13 +48,13 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return exec.Command("sh", "-c", "echo 'timeout: run: stuff' && false").Output()
 		}
-		svr := SvRestarter{Service: "/etc/sv/my-test-service", nServices: 3, index: 2, timeout: 1}
+		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get an error and a message should be printed", func() {
 			err := svr.Restart()
 			So(err.(ErrRestartTimeout), ShouldNotBeNil)
 			So(logs, ShouldResemble, []string{
-				"[2/3] (/etc/sv/my-test-service) restarting",
-				"[2/3] (/etc/sv/my-test-service) did not restart in time",
+				"[2/3] (/etc/service/my-test-service) restarting",
+				"[2/3] (/etc/service/my-test-service) did not restart in time",
 			})
 		})
 	})
