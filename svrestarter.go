@@ -50,7 +50,7 @@ func (s *SvRestarter) log(message string) {
 }
 
 func _restartCmd(timeout, service string) ([]byte, error) {
-	cmd := exec.Command("sv", "-w", timeout, "restart", service)
+	cmd := exec.Command("/usr/bin/sv", "-w", timeout, "restart", service)
 	return cmd.CombinedOutput()
 }
 

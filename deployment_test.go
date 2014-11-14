@@ -1,7 +1,7 @@
 package main
 
 import (
-	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -9,8 +9,7 @@ import (
 )
 
 var (
-	concurrency      = 0
-	concurrencyMutex sync.Mutex
+	concurrency int32
 )
 
 var (
@@ -18,15 +17,9 @@ var (
 )
 
 func restartWithTiming(svr *SvRestarter) error {
-	concurrencyMutex.Lock()
-	concurrency++
-	concurrencyMutex.Unlock()
-
+	atomic.AddInt32(&concurrency, 1)
 	time.Sleep(2 * quantum)
-
-	concurrencyMutex.Lock()
-	concurrency--
-	concurrencyMutex.Unlock()
+	atomic.AddInt32(&concurrency, -1)
 
 	return nil
 }
@@ -170,17 +163,17 @@ func TestDeployment(t *testing.T) {
 					ch <- depl.Run()
 				}()
 				time.Sleep(quantum) // put us out of phase with the sleeps in the restart code
-				So(concurrency, ShouldEqual, 1)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 1)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 2)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 2)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 2)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 2)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 2)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 2)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 1)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 1)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 0)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 0)
 
 				var err error
 				select {
@@ -207,11 +200,11 @@ func TestDeployment(t *testing.T) {
 					ch <- depl.Run()
 				}()
 				time.Sleep(quantum) // put us out of phase with the sleeps in the restart code
-				So(concurrency, ShouldEqual, 2)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 2)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 1)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 1)
 				time.Sleep(2 * quantum)
-				So(concurrency, ShouldEqual, 0)
+				So(atomic.LoadInt32(&concurrency), ShouldEqual, 0)
 
 				var err error
 				select {

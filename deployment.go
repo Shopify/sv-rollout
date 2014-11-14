@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"sync"
 )
 
 // Deployment orchestrates the concurrent restarting of all the indicated
@@ -31,6 +32,8 @@ type Deployment struct {
 
 	servicesToRestart chan string
 	results           chan error
+
+	sync.Mutex
 }
 
 // NewDeployment initializes a Deployment object with a list of services
@@ -151,11 +154,14 @@ func (d *Deployment) allComplete() bool {
 }
 
 func (d *Deployment) restart(service string) error {
+	d.Lock()
 	d.index++
+	index := d.index
+	d.Unlock()
 	svr := SvRestarter{
 		Service:   service,
 		nServices: d.numServices,
-		index:     d.index,
+		index:     index,
 		timeout:   d.timeout,
 	}
 	return restartSvr(&svr)
