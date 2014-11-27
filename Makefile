@@ -50,7 +50,7 @@ $(DEB): build/bin/linux-amd64 man
 clean:
 	rm -rf build pkg
 
-dev_bootstrap: versions
+dev_bootstrap: version.go
 	go get ./...
 	go get github.com/mitchellh/gox
 	gox -build-toolchain -osarch="linux/amd64"
