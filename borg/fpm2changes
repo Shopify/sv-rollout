@@ -21,4 +21,4 @@ pkgname=$(grep -oP "(?<=Package: )(.*)" control)
 version=$(grep -oP "(?<=Version: )(.*)" control)
 echo "Source: ${pkgname}" >> control
 
-dpkg-genchanges -lchangelog -ccontrol -u. -f<(echo *.deb admin extra) -b -q "-DDistribution=${distro}" "-DBinary=${pkgname}-${version}" 2>/dev/null
+dpkg-genchanges -lchangelog -ccontrol -u. -f<(echo *.deb admin extra) -b -q "-DDistribution=${distro}" "-DBinary=${pkgname}" 2>/dev/null
