@@ -18,6 +18,7 @@ tar xf data.tar.gz
 cat usr/share/doc/*/changelog.Debian.gz | zcat > changelog
 
 pkgname=$(grep -oP "(?<=Package: )(.*)" control)
+version=$(grep -oP "(?<=Version: )(.*)" control)
 echo "Source: ${pkgname}" >> control
 
-dpkg-genchanges -lchangelog -ccontrol -u. -f<(echo *.deb admin extra) -b -q "-DDistribution=${distro}" 2>/dev/null
+dpkg-genchanges -lchangelog -ccontrol -u. -f<(echo *.deb admin extra) -b -q "-DDistribution=${distro}" "-DBinary=${pkgname}-${version}" 2>/dev/null
