@@ -6,7 +6,6 @@ apt-get install -y --no-install-recommends \
   build-essential \
   equivs \
   devscripts \
-  openssh-server \
-  golang-go
+  openssh-server
 
 gem install ronn
