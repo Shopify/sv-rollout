@@ -21,7 +21,7 @@ setup_ssh_keys() {
 }
 
 build_deb() {
-  make
+  make dev_bootstrap all
 }
 
 genchanges() {
