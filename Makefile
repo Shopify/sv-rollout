@@ -52,5 +52,6 @@ clean:
 
 dev_bootstrap: version.go
 	GOPATH=$(GODEP_PATH):$$GOPATH go get github.com/mitchellh/gox
+	GOPATH=$(GODEP_PATH):$$GOPATH go install github.com/mitchellh/gox
 	GOPATH=$(GODEP_PATH):$$GOPATH gox -build-toolchain -osarch="linux/amd64"
 	bundle install
