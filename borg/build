@@ -2,6 +2,7 @@
 [[ "$1" == "final" ]] || exit 0
 set -xeuo pipefail
 
+LSB_RELEASE=trusty
 APPNAME="$(cat /app/APPNAME)"
 test "${APPNAME}"
 
@@ -23,19 +24,28 @@ build_deb() {
   make
 }
 
+genchanges() {
+  (
+    cd pkg
+    /app/borg/fpm2changes "${LSB_RELEASE}" *.deb > "${APPNAME}.changes"
+  )
+}
+
 inspect() {
   dpkg-deb --contents /app/pkg/*.deb
+  cat /app/pkg/*.changes
 }
 
 upload_deb() {
-  ruby /app/borg/upload_deb.rb /workspace
+  ruby /app/borg/upload_deb.rb /app/pkg
 }
 
 main() {
   setup_ssh_keys
   build_deb
+  genchanges
   inspect
-  #upload_deb # This will need changing: fpm doesn't generate a .changes file.
+  #upload_deb # This is sorta untested.
 }
 main "$@"
 
