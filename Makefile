@@ -51,7 +51,6 @@ clean:
 	rm -rf build pkg
 
 dev_bootstrap: version.go
-	go get ./...
 	go get github.com/mitchellh/gox
 	gox -build-toolchain -osarch="linux/amd64"
 	bundle install
