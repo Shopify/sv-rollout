@@ -23,7 +23,9 @@ build/man/%.gz: man/%.ronn
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
 build/bin/linux-amd64: $(GOFILES) version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" .
+	if [ $(uname -s) != 'Linux' ] ; then \
+		GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" . ; else \
+		GOPATH=$(GODEP_PATH):$$GOPATH go build -o $@ . ; fi
 
 version.go: VERSION
 	echo 'package main\n\nconst VERSION string = "$(VERSION)"' > $@
@@ -51,6 +53,5 @@ clean:
 	rm -rf build pkg
 
 dev_bootstrap: version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH go get github.com/mitchellh/gox
-	GOPATH=$(GODEP_PATH):$$GOPATH $(GODEP_PATH)/bin/gox -build-toolchain -osarch="linux/amd64"
+	if [ $(uname -s) != 'Linux' ] ; then go get github.com/mitchellh/gox; gox -build-toolchain -osarch="linux/amd64"; fi
 	bundle install
