@@ -45,7 +45,7 @@ main() {
   build_deb
   genchanges
   inspect
-  #upload_deb # This is sorta untested.
+  upload_deb
 }
 main "$@"
 
