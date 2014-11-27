@@ -6,8 +6,7 @@ apt-get install -y --no-install-recommends \
   build-essential \
   equivs \
   devscripts \
-  openssh-server
+  openssh-server \
+  golang-go
 
 gem install ronn
-
-echo "borg ALL = NOPASSWD: ALL" > /etc/sudoers.d/borg-needs-sudo

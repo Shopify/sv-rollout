@@ -2,12 +2,11 @@
 [[ "$1" == "final" ]] || exit 0
 set -xeuo pipefail
 
-LSB_RELEASE="trusty"
+LSB_RELEASE=trusty
 APPNAME="$(cat /app/APPNAME)"
 test "${APPNAME}"
 
 cleanup() {
-  sudo rm -rf /workspace
   sudo rm -rf ~/.ssh
 }
 trap cleanup EXIT
@@ -21,72 +20,32 @@ setup_ssh_keys() {
   chmod 0600 ~/.ssh/id_rsa
 }
 
-gen_version() {
-  local version="$(cat /app/VERSION)"
-  local revision="$(cat /app/REVISION)"
-  test "${version}"
-  test "${revision}"
-  echo "${version}-${revision:0:8}" # eg: 1.0-deadbeef
-}
-
-setup_workspace() {
-  sudo mkdir /workspace
-  sudo chown -R borg:borg /workspace
-  cp -a /app "/workspace/${APPNAME}"
-}
-
-install_build_deps() {
-  cd "/workspace/${APPNAME}/debian"
-  mk-build-deps control
-  sudo dpkg -i *.deb || true
-  sudo apt-get -f -y install
-}
-
-compile_manpages() {
-  cd "/workspace/${APPNAME}"
-  for ronnfile in man/*.ronn; do
-    # We should probably put rubygems on the container's PATH.
-    /usr/lib/shopify-ruby/2.1.3-shopify1/bin/ronn -r "${ronnfile}"
-  done
-  for manfile in $(ls man | grep -P '\.\d$'); do
-    echo "man/${manfile}" >> "debian/${APPNAME}.manpages"
-  done
-}
-
 build_deb() {
-  local version=$1;shift
-  cd "/workspace/${APPNAME}/debian"
+  make
+}
 
-  dch \
-    --newversion "${version}" \
-    --force-bad-version \
-    -D "${LSB_RELEASE}" \
-    "Release for ${LSB_RELEASE}"
-
-  debuild -i -us -uc -b
+genchanges() {
+  (
+    cd pkg
+    /app/borg/fpm2changes "${LSB_RELEASE}" *.deb > "${APPNAME}.changes"
+  )
 }
 
 inspect() {
-  ls -lsa /workspace
-  sudo dpkg -i /workspace/*.deb
-  cat /workspace/*.changes
-  dpkg-query -L "${APPNAME}"
-  man "${APPNAME}"
+  dpkg-deb --contents /app/pkg/*.deb
+  cat /app/pkg/*.changes
 }
 
 upload_deb() {
-  ruby /app/borg/upload_deb.rb /workspace
+  ruby /app/borg/upload_deb.rb /app/pkg
 }
 
 main() {
-  local version="$(gen_version)"
   setup_ssh_keys
-  setup_workspace
-  install_build_deps
-  compile_manpages
-  build_deb "${version}"
+  build_deb
+  genchanges
   inspect
-  #upload_deb
+  upload_deb
 }
 main "$@"
 
