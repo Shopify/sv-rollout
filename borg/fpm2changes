@@ -12,13 +12,12 @@ trap 'rm -rf "${dir}"' EXIT
 cp "${deb}" "${dir}"
 cd "${dir}"
 
-ar vx *.deb > /dev/null
+ar x *.deb
 tar xf control.tar.gz
 tar xf data.tar.gz
 cat usr/share/doc/*/changelog.Debian.gz | zcat > changelog
 
 pkgname=$(grep -oP "(?<=Package: )(.*)" control)
-version=$(grep -oP "(?<=Version: )(.*)" control)
 echo "Source: ${pkgname}" >> control
 
 dpkg-genchanges -lchangelog -ccontrol -u. -f<(echo *.deb admin extra) -b -q "-DDistribution=${distro}" "-DBinary=${pkgname}" 2>/dev/null
