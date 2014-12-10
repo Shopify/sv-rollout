@@ -2,15 +2,7 @@
 [[ "$1" == "final" ]] || exit 0
 set -xeuo pipefail
 
-LSB_RELEASE=trusty
 SSH_TARGET="apt-upload@apt.ec2.shopify.com"
-APPNAME="$(cat /app/APPNAME)"
-test "${APPNAME}"
-
-cleanup() {
-  sudo rm -rf ~/.ssh
-}
-trap cleanup EXIT
 
 setup_ssh_keys() {
   mkdir -p ~/.ssh
@@ -23,18 +15,6 @@ setup_ssh_keys() {
 
 build_deb() {
   make dev_bootstrap all
-}
-
-genchanges() {
-  (
-    cd pkg
-    /app/borg/fpm2changes "${LSB_RELEASE}" *.deb > "${APPNAME}.changes"
-  )
-}
-
-inspect() {
-  dpkg-deb --contents /app/pkg/*.deb
-  cat /app/pkg/*.changes
 }
 
 generate_upload_id() {
@@ -58,8 +38,6 @@ upload_deb() {
 main() {
   setup_ssh_keys
   build_deb
-  genchanges
-  inspect
   #upload_deb
 }
 main "$@"
