@@ -25,6 +25,10 @@ type config struct {
 	Timeout                int
 }
 
+func init() {
+	log.SetOutput(os.Stdout)
+}
+
 // Verbose controls whether extra information is printed as choices are made.
 // It's set by the `-verbose` CLI flag.
 var Verbose bool
