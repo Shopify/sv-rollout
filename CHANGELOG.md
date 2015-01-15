@@ -1,3 +1,7 @@
+# 1.0.2
+
+* Write log output to STDOUT instead of STDERR.
+
 # 1.0.1
 
 * Removed .changes generation
