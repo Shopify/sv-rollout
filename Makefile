@@ -3,7 +3,6 @@ PACKAGE=github.com/Shopify/ejson
 LSB_RELEASE=trusty
 VERSION=$(shell cat VERSION)
 DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
-CHANGES=pkg/$(NAME).changes
 
 GOFILES=$(shell find . -type f -name '*.go')
 MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/\.gz/')
@@ -12,13 +11,12 @@ GODEP_PATH=$(shell pwd)/Godeps/_workspace
 
 BUNDLE_EXEC=bundle exec
 
-.PHONY: default all binaries man clean dev_bootstrap deb changes
+.PHONY: default all binaries man clean dev_bootstrap deb
 
 default: all
-all: deb changes
+all: deb
 binaries: build/bin/linux-amd64
 deb: $(DEB)
-changes: $(CHANGES)
 man: $(MANFILES)
 
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -35,9 +33,6 @@ build/bin/linux-amd64: $(GOFILES) version.go
 
 version.go: VERSION
 	echo 'package main\n\nconst VERSION string = "$(VERSION)"' > $@
-
-$(CHANGES): $(DEB)
-	(cd $(<D) && $(mkfile_dir)/script/fpm2changes $(LSB_RELEASE) *.deb) > $@
 
 $(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
