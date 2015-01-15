@@ -1,6 +1,4 @@
 NAME=sv-rollout
-PACKAGE=github.com/Shopify/ejson
-LSB_RELEASE=trusty
 VERSION=$(shell cat VERSION)
 DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
 
