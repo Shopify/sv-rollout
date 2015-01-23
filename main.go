@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -23,6 +24,7 @@ type config struct {
 	ChunkRatio             float64
 	TimeoutTolerance       float64
 	Timeout                int
+	MinInterval            time.Duration
 }
 
 func init() {
@@ -68,6 +70,7 @@ var (
 	timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
 	pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/service entries (e.g. \"borg-shopify-*\")")
 	verbose                = flag.Bool("verbose", false, "print more information about what's going on")
+	minInterval            = flag.Int("min-interval-ms", 0, "Minimum number of milliseconds to wait between `sv restart` invocations")
 )
 
 func main() {
@@ -78,6 +81,7 @@ func main() {
 		ChunkRatio:             *chunkRatio,
 		TimeoutTolerance:       *timeoutTolerance,
 		Timeout:                *timeout,
+		MinInterval:            time.Duration(*minInterval) * time.Millisecond,
 	}
 	config.AssertValid(*pattern)
 

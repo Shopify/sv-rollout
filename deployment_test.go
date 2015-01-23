@@ -16,7 +16,7 @@ var (
 	quantum = 25 * time.Millisecond
 )
 
-func restartWithTiming(svr *SvRestarter) error {
+func restartWithTiming(svr *SvRestarter, d time.Duration) error {
 	atomic.AddInt32(&concurrency, 1)
 	time.Sleep(2 * quantum)
 	atomic.AddInt32(&concurrency, -1)
@@ -24,30 +24,30 @@ func restartWithTiming(svr *SvRestarter) error {
 	return nil
 }
 
-func alwaysPass(svr *SvRestarter) error {
+func alwaysPass(svr *SvRestarter, d time.Duration) error {
 	return nil
 }
 
-func alwaysTimeout(svr *SvRestarter) error {
+func alwaysTimeout(svr *SvRestarter, d time.Duration) error {
 	return ErrRestartTimeout{Service: svr.Service}
 }
 
-func alwaysFail(svr *SvRestarter) error {
+func alwaysFail(svr *SvRestarter, d time.Duration) error {
 	return ErrRestartFailed{Service: svr.Service, Message: "failed"}
 }
 
-func timeoutOneService(svr *SvRestarter) error {
+func timeoutOneService(svr *SvRestarter, d time.Duration) error {
 	if svr.Service == "b" {
-		return alwaysTimeout(svr)
+		return alwaysTimeout(svr, d)
 	}
-	return alwaysPass(svr)
+	return alwaysPass(svr, d)
 }
 
-func failOneService(svr *SvRestarter) error {
+func failOneService(svr *SvRestarter, d time.Duration) error {
 	if svr.Service == "b" {
-		return alwaysFail(svr)
+		return alwaysFail(svr, d)
 	}
-	return alwaysPass(svr)
+	return alwaysPass(svr, d)
 }
 
 func TestDeployment(t *testing.T) {
@@ -104,9 +104,9 @@ func TestDeployment(t *testing.T) {
 			config.TimeoutTolerance = 0.5
 			Convey("Fails when the canary times out", func() {
 				depl := NewDeployment([]string{"a", "b", "c"}, config)
-				restartSvr = func(svr *SvRestarter) error {
+				restartSvr = func(svr *SvRestarter, d time.Duration) error {
 					if svr.Service == depl.canaryServices[0] {
-						return alwaysTimeout(svr)
+						return alwaysTimeout(svr, 0)
 					}
 					return nil
 				}
@@ -115,9 +115,9 @@ func TestDeployment(t *testing.T) {
 			})
 			Convey("Succeeds when one non-canary service times out", func() {
 				depl := NewDeployment([]string{"a", "b", "c"}, config)
-				restartSvr = func(svr *SvRestarter) error {
+				restartSvr = func(svr *SvRestarter, d time.Duration) error {
 					if svr.Service == depl.postCanaryServices[0] {
-						return alwaysTimeout(svr)
+						return alwaysTimeout(svr, 0)
 					}
 					return nil
 				}
@@ -126,9 +126,9 @@ func TestDeployment(t *testing.T) {
 			})
 			Convey("Fails when the canary fails", func() {
 				depl := NewDeployment([]string{"a", "b", "c"}, config)
-				restartSvr = func(svr *SvRestarter) error {
+				restartSvr = func(svr *SvRestarter, d time.Duration) error {
 					if svr.Service == depl.canaryServices[0] {
-						return alwaysFail(svr)
+						return alwaysFail(svr, 0)
 					}
 					return nil
 				}
@@ -137,9 +137,9 @@ func TestDeployment(t *testing.T) {
 			})
 			Convey("Succeeds when one non-canary service fails", func() {
 				depl := NewDeployment([]string{"a", "b", "c"}, config)
-				restartSvr = func(svr *SvRestarter) error {
+				restartSvr = func(svr *SvRestarter, d time.Duration) error {
 					if svr.Service == depl.postCanaryServices[0] {
-						return alwaysFail(svr)
+						return alwaysFail(svr, 0)
 					}
 					return nil
 				}

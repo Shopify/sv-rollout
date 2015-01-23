@@ -18,7 +18,7 @@ func TestSvRestarter(t *testing.T) {
 		}
 		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get a nil and a success message should be printed", func() {
-			err := svr.Restart()
+			err := svr.Restart(0)
 			So(err, ShouldBeNil)
 			So(logs, ShouldResemble, []string{
 				"[2/3] (/etc/service/my-test-service) restarting",
@@ -34,7 +34,7 @@ func TestSvRestarter(t *testing.T) {
 		}
 		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get an error and a message should be printed", func() {
-			err := svr.Restart()
+			err := svr.Restart(0)
 			So(err.(ErrRestartFailed), ShouldNotBeNil)
 			So(logs, ShouldResemble, []string{
 				"[2/3] (/etc/service/my-test-service) restarting",
@@ -50,7 +50,7 @@ func TestSvRestarter(t *testing.T) {
 		}
 		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
 		Convey("the results channel should get an error and a message should be printed", func() {
-			err := svr.Restart()
+			err := svr.Restart(0)
 			So(err.(ErrRestartTimeout), ShouldNotBeNil)
 			So(logs, ShouldResemble, []string{
 				"[2/3] (/etc/service/my-test-service) restarting",

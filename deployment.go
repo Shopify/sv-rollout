@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"sync"
+	"time"
 )
 
 // Deployment orchestrates the concurrent restarting of all the indicated
@@ -20,8 +21,9 @@ type Deployment struct {
 
 	postCanaryConcurrency int
 
-	timeout int
-	index   int
+	timeout     int
+	index       int
+	minInterval time.Duration
 
 	currentFailuresPermitted int
 	currentTimeoutsPermitted int
@@ -50,6 +52,7 @@ func NewDeployment(services []string, config config) *Deployment {
 	d.totalTimeoutsPermitted = ttp
 
 	d.timeout = config.Timeout
+	d.minInterval = config.MinInterval
 
 	d.postCanaryConcurrency = ceilRatio(d.postCanaryServices, config.ChunkRatio)
 
@@ -164,7 +167,7 @@ func (d *Deployment) restart(service string) error {
 		index:     index,
 		timeout:   d.timeout,
 	}
-	return restartSvr(&svr)
+	return restartSvr(&svr, d.minInterval)
 }
 
 func chooseCanaries(services []string, ratio float64) (canaries []string, nonCanaries []string) {
@@ -192,6 +195,6 @@ var (
 	restartSvr = _restartSvr
 )
 
-func _restartSvr(svr *SvRestarter) error {
-	return svr.Restart()
+func _restartSvr(svr *SvRestarter, minInterval time.Duration) error {
+	return svr.Restart(minInterval)
 }
