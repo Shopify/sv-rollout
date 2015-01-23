@@ -5,6 +5,8 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+	"sync"
+	"time"
 )
 
 // SvRestarter is a simple object that restarts a single runit service.
@@ -15,9 +17,24 @@ type SvRestarter struct {
 	timeout   int
 }
 
+var (
+	restartGate chan struct{}
+	once        sync.Once
+)
+
 // Restart shells out to runit to restart the service, and logs messages before
 // and after indicating the relevant status.
-func (s *SvRestarter) Restart() error {
+func (s *SvRestarter) Restart(minInterval time.Duration) error {
+	once.Do(func() {
+		restartGate = make(chan struct{})
+		go func() { restartGate <- struct{}{} }()
+	})
+	<-restartGate
+	go func() {
+		time.Sleep(minInterval)
+		restartGate <- struct{}{}
+	}()
+
 	s.log("restarting")
 	out, err := restartCmd(fmt.Sprintf("%d", s.timeout), s.Service)
 

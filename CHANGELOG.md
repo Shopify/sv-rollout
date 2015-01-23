@@ -1,3 +1,7 @@
+# 1.1.0
+
+* Add `-min-interval-ms` flag to specify the minimum number of milliseconds to wait between `sv restart` invocations.
+
 # 1.0.2
 
 * Write log output to STDOUT instead of STDERR.
