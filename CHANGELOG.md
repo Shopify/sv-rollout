@@ -1,3 +1,7 @@
+# 1.0.3
+
+* Write failures and timeouts to STDERR.
+
 # 1.0.2
 
 * Write log output to STDOUT instead of STDERR.

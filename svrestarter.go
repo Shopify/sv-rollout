@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -15,10 +16,15 @@ type SvRestarter struct {
 	timeout   int
 }
 
+var (
+	stdoutLogger = log.New(os.Stdout, "", log.LstdFlags)
+	stderrLogger = log.New(os.Stderr, "", log.LstdFlags)
+)
+
 // Restart shells out to runit to restart the service, and logs messages before
 // and after indicating the relevant status.
 func (s *SvRestarter) Restart() error {
-	s.log("restarting")
+	s.log("restarting", false)
 	out, err := restartCmd(fmt.Sprintf("%d", s.timeout), s.Service)
 
 	if err != nil {
@@ -35,18 +41,22 @@ func (s *SvRestarter) Restart() error {
 func (s *SvRestarter) notifyResult(result error) {
 	switch result.(type) {
 	case nil:
-		s.log("successfully restarted")
+		s.log("successfully restarted", false)
 	case ErrRestartTimeout:
-		s.log("did not restart in time")
+		s.log("did not restart in time", true)
 	case ErrRestartFailed:
-		s.log("failed to restart")
+		s.log("failed to restart", true)
 	default:
 		panic(result)
 	}
 }
 
-func (s *SvRestarter) log(message string) {
-	printLog(fmt.Sprintf("[%d/%d] (%s) %s", s.index, s.nServices, s.Service, message))
+func (s *SvRestarter) log(message string, toStderr bool) {
+	logFunc := stdoutLog
+	if toStderr {
+		logFunc = stderrLog
+	}
+	logFunc(fmt.Sprintf("[%d/%d] (%s) %s", s.index, s.nServices, s.Service, message))
 }
 
 func _restartCmd(timeout, service string) ([]byte, error) {
@@ -56,6 +66,7 @@ func _restartCmd(timeout, service string) ([]byte, error) {
 
 // test stubs
 var (
-	printLog   = log.Println
+	stdoutLog  = stdoutLogger.Println
+	stderrLog  = stdoutLogger.Println
 	restartCmd = _restartCmd
 )
