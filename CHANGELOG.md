@@ -1,6 +1,7 @@
 # 1.0.3
 
 * Write failures and timeouts to STDERR.
+* Add `-oncomplete` to specify a command to run when done.
 
 # 1.0.2
 

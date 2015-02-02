@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 )
@@ -23,6 +24,7 @@ type config struct {
 	ChunkRatio             float64
 	TimeoutTolerance       float64
 	Timeout                int
+	OnComplete             string
 }
 
 func init() {
@@ -67,6 +69,7 @@ var (
 	timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
 	timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
 	pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/service entries (e.g. \"borg-shopify-*\")")
+	onComplete             = flag.String("oncomplete", "", "command to execute when the deploy finishes (regardless of success)")
 	verbose                = flag.Bool("verbose", false, "print more information about what's going on")
 )
 
@@ -78,6 +81,7 @@ func main() {
 		ChunkRatio:             *chunkRatio,
 		TimeoutTolerance:       *timeoutTolerance,
 		Timeout:                *timeout,
+		OnComplete:             *onComplete,
 	}
 	config.AssertValid(*pattern)
 
@@ -96,6 +100,8 @@ func run(servicePattern string, c config) int {
 		log.Fatal(err)
 	}
 
+	defer runCompletionHandler(c.OnComplete)
+
 	d := NewDeployment(services, c)
 	if err := d.Run(); err != nil {
 		return 1
@@ -113,6 +119,20 @@ func getServices(pattern string) (services []string, err error) {
 		services = append(services, path.Base(p))
 	}
 	return
+}
+
+func runCompletionHandler(command string) {
+	if command == "" {
+		return
+	}
+	cmd := exec.Command("sh", "-c", command)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Println("completion handler failed:", err)
+		return
+	}
+	log.Println("completion handler:", command)
+	log.Println(string(output))
 }
 
 var globServices = filepath.Glob
