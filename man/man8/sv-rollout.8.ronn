@@ -3,7 +3,7 @@ sv-rollout(8) -- restart multiple runit services concurrently
 
 ## SYNOPSIS
 
-`sv-rollout` `-pattern` <glob> [`-verbose`] [`-canary-ratio` <ratio>] [`-canary-timeout-tolerance` <ratio>] [`-chunk-ratio` <ratio>] [`-timeout-tolerance` <ratio>] [`-timeout` <seconds>]
+`sv-rollout` `-pattern` <glob> [`-verbose`] [`-canary-ratio` <ratio>] [`-canary-timeout-tolerance` <ratio>] [`-chunk-ratio` <ratio>] [`-timeout-tolerance` <ratio>] [`-oncomplete` <command>] [`-timeout` <seconds>]
 
 ## DESCRIPTION
 
@@ -40,6 +40,10 @@ time (`-chunk-ratio`). No container restarts are allowed to time out
   * `-timeout`=<seconds>:
     Number of seconds to wait for a service to restart before considering it
     timed out and moving on.
+
+  * `-oncomplete`=<command>:
+    Command to execute when the deploy finishes. Executed regardless of whether
+    the deploy succeeded or failed. Executed via `sh -c`.
 
   * `-verbose`:
     Print more information about what's going on, especially the absolute values
