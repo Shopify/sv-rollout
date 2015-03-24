@@ -8,10 +8,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -51,6 +53,8 @@ func (c config) AssertValid(pattern string) {
 }
 
 func init() {
+	rand.Seed(time.Now().UnixNano()) // init(), not main(), so that tests get it too.
+
 	oldUsage := flag.Usage
 	flag.Usage = func() {
 		oldUsage()
@@ -118,7 +122,16 @@ func getServices(pattern string) (services []string, err error) {
 	for _, p := range fullpaths {
 		services = append(services, path.Base(p))
 	}
+	shuffle(services)
 	return
+}
+
+// Fisher-Yates, Sattolo's algorithm
+func shuffle(a []string) {
+	for i := range a {
+		j := rand.Intn(i + 1)
+		a[i], a[j] = a[j], a[i]
+	}
 }
 
 func runCompletionHandler(command string) {
