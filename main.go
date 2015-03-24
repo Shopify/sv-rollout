@@ -62,18 +62,18 @@ func init() {
 	}
 }
 
-var (
-	canaryRatio            = flag.Float64("canary-ratio", 0.001, "canary nodes are restarted first. If they fail, the deploy is failed. Rounded up to the nearest node, unless set to zero")
-	canaryTimeoutTolerance = flag.Float64("canary-timeout-tolerance", 0, "ratio of canary nodes that are permitted to time out without causing the deploy to fail")
-	chunkRatio             = flag.Float64("chunk-ratio", 0.2, "after canary nodes, ratio of remaining nodes permitted to restart concurrently")
-	timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
-	timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
-	pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/service entries (e.g. \"borg-shopify-*\")")
-	onComplete             = flag.String("oncomplete", "", "command to execute when the deploy finishes (regardless of success)")
-	verbose                = flag.Bool("verbose", false, "print more information about what's going on")
-)
-
 func main() {
+	var (
+		canaryRatio            = flag.Float64("canary-ratio", 0.001, "canary nodes are restarted first. If they fail, the deploy is failed. Rounded up to the nearest node, unless set to zero")
+		canaryTimeoutTolerance = flag.Float64("canary-timeout-tolerance", 0, "ratio of canary nodes that are permitted to time out without causing the deploy to fail")
+		chunkRatio             = flag.Float64("chunk-ratio", 0.2, "after canary nodes, ratio of remaining nodes permitted to restart concurrently")
+		timeoutTolerance       = flag.Float64("timeout-tolerance", 0, "ratio of total nodes whose restarts may time out and still consider the deploy a success")
+		timeout                = flag.Int("timeout", 90, "number of seconds to wait for a service to restart before considering it timed out and moving on")
+		pattern                = flag.String("pattern", "", "(required) glob pattern to match /etc/service entries (e.g. \"borg-shopify-*\")")
+		onComplete             = flag.String("oncomplete", "", "command to execute when the deploy finishes (regardless of success)")
+		verbose                = flag.Bool("verbose", false, "print more information about what's going on")
+	)
+
 	flag.Parse()
 	config := config{
 		CanaryRatio:            *canaryRatio,
