@@ -106,7 +106,10 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 		d.toRestart <- svr
 	}
 
+	remaining := len(services) + 1 // number of services yet to be processed.
 	for result := range d.results {
+		remaining--
+
 		switch result.(type) {
 		case nil:
 			d.successesSoFar++
@@ -118,11 +121,21 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 			if err = d.incrementTimeouts(); err != nil {
 				return
 			}
+		case ErrRestartPreempted:
+			// no need to handle the error here because we pre-verified that it's ok
+			// before preempting the svr
+			_ = d.incrementTimeouts()
 		default:
 			panic(result)
 		}
 		if done() {
 			return nil
+		}
+
+		if d.currentTimeoutsPermitted >= remaining {
+			for _, svr := range d.svrs {
+				svr.Preempt()
+			}
 		}
 	}
 

@@ -62,6 +62,51 @@ func TestDeployment(t *testing.T) {
 
 	Convey("Running a deployment", t, func() {
 
+		Convey("with preemption", func() {
+			config.CanaryRatio = 0
+			config.TimeoutTolerance = 0.61
+			config.ChunkRatio = 0.001
+			restartSvr = _restartSvr
+
+			restartCmd = func(t, s string, a chan struct{}) ([]byte, error) {
+				close(a)
+				time.Sleep(250 * time.Millisecond)
+				return nil, nil
+			}
+			var outLogs []string
+			var errLogs []string
+			stdoutLog = func(a ...interface{}) { outLogs = append(outLogs, a[0].(string)) }
+			stderrLog = func(a ...interface{}) { errLogs = append(errLogs, a[0].(string)) }
+
+			depl := NewDeployment([]string{"a", "b", "c", "d", "e"}, config)
+			t1 := time.Now()
+			err := depl.Run()
+			t2 := time.Since(t1)
+
+			Convey("succeeds, faster than without preemption", func() {
+				// tolerance = 60%, therefore only need to wait on 2/5.
+				// 2 * 250ms = 500ms, but will take usually ~510-520ms.
+				So(t2, ShouldBeBetween, 500*time.Millisecond, 599*time.Millisecond)
+				So(err, ShouldBeNil)
+
+				So(outLogs, ShouldResemble, []string{
+					"[1/5] (a) restarting",
+					"[1/5] (a) successfully restarted",
+					"[2/5] (b) restarting",
+					"[2/5] (b) successfully restarted",
+					"[3/5] (c) restarting",
+					"[4/5] (d) restarting",
+					"[5/5] (e) restarting",
+				})
+				So(errLogs, ShouldResemble, []string{
+					"[3/5] (c) was not required to restart in time",
+					"[4/5] (d) was not required to restart in time",
+					"[5/5] (e) was not required to restart in time",
+				})
+
+			})
+		})
+
 		Convey("with no canaries and 50% timeouts allowed", func() {
 			config.CanaryRatio = 0
 			config.TimeoutTolerance = 0.5

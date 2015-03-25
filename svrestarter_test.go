@@ -17,7 +17,8 @@ func TestSvRestarter(t *testing.T) {
 	Convey("When a service restarts successfully under SvRestarter", t, func() {
 		outLogs = []string{}
 		errLogs = []string{}
-		restartCmd = func(t, s string) ([]byte, error) {
+		restartCmd = func(t, s string, a chan struct{}) ([]byte, error) {
+			close(a)
 			return nil, nil
 		}
 		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
@@ -34,7 +35,8 @@ func TestSvRestarter(t *testing.T) {
 	Convey("When a service fails to restart under SvRestarter", t, func() {
 		outLogs = []string{}
 		errLogs = []string{}
-		restartCmd = func(t, s string) ([]byte, error) {
+		restartCmd = func(t, s string, a chan struct{}) ([]byte, error) {
+			close(a)
 			return exec.Command("sh", "-c", "echo failed && false").Output()
 		}
 		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
@@ -53,7 +55,8 @@ func TestSvRestarter(t *testing.T) {
 	Convey("When a service times out under SvRestarter", t, func() {
 		outLogs = []string{}
 		errLogs = []string{}
-		restartCmd = func(t, s string) ([]byte, error) {
+		restartCmd = func(t, s string, a chan struct{}) ([]byte, error) {
+			close(a)
 			return exec.Command("sh", "-c", "echo 'timeout: run: stuff' && false").Output()
 		}
 		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
@@ -72,7 +75,8 @@ func TestSvRestarter(t *testing.T) {
 	Convey("When a service restart is preempted", t, func() {
 		outLogs = []string{}
 		errLogs = []string{}
-		restartCmd = func(t, s string) ([]byte, error) {
+		restartCmd = func(t, s string, a chan struct{}) ([]byte, error) {
+			close(a)
 			time.Sleep(1 * time.Second)
 			return nil, nil
 		}

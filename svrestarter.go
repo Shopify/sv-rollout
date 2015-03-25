@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -44,16 +45,8 @@ func (s *SvRestarter) Restart() error {
 		preemptionAcceptable = make(chan struct{})
 	)
 	go func() {
-		out, err = restartCmd(fmt.Sprintf("%d", s.timeout), s.Service)
+		out, err = restartCmd(fmt.Sprintf("%d", s.timeout), s.Service, preemptionAcceptable)
 		close(restartDone)
-	}()
-
-	go func() {
-		// We don't want to preempt before actually shelling out, which is kind of
-		// hard to hook correctly. Instead we make the kind-of-shady assumption
-		// that 200ms is more than enough to fork/exec.
-		time.Sleep(200 * time.Millisecond)
-		close(preemptionAcceptable)
 	}()
 
 	select {
@@ -78,7 +71,11 @@ func (s *SvRestarter) Restart() error {
 // restart to complete; that it can just print a message about the service not
 // needing to restart successfully for the deploy to be considered a success.
 func (s *SvRestarter) Preempt() {
-	close(s.preempt)
+	select {
+	case <-s.preempt:
+	default:
+		close(s.preempt)
+	}
 }
 
 func (s *SvRestarter) notifyResult(result error) {
@@ -104,9 +101,22 @@ func (s *SvRestarter) log(message string, toStderr bool) {
 	logFunc(fmt.Sprintf("[%d/%d] (%s) %s", s.index, s.nServices, s.Service, message))
 }
 
-func _restartCmd(timeout, service string) ([]byte, error) {
+func _restartCmd(timeout, service string, preemptionAcceptable chan struct{}) ([]byte, error) {
 	cmd := exec.Command("/usr/bin/sv", "-w", timeout, "restart", service)
-	return cmd.CombinedOutput()
+	var b []byte
+	out := bytes.NewBuffer(b)
+	cmd.Stderr = out
+	cmd.Stdout = out
+	cmd.Start()
+	go func() {
+		// I don't think we really have to wait before it's safe to quit, but just
+		// in case, this will certainly be more than enough time for `sv` to
+		// actually signal the existing process to shut down.
+		time.Sleep(100 * time.Millisecond)
+		close(preemptionAcceptable)
+	}()
+	err := cmd.Wait()
+	return out.Bytes(), err
 }
 
 // test stubs
