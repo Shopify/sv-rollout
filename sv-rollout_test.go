@@ -9,6 +9,31 @@ import (
 
 func TestSvRollout(t *testing.T) {
 
+	Convey("Shuffling services", t, func() {
+		defer func() {
+			globServices = filepath.Glob
+		}()
+		unexpected := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+		globServices = func(a string) ([]string, error) {
+			var rets []string
+			for _, str := range unexpected {
+				rets = append(rets, "/etc/service/"+(str))
+			}
+			return rets, nil
+		}
+		svcs, err := getServices("borg-shopify-*")
+
+		Convey("Services should be shuffled", func() {
+			So(err, ShouldBeNil)
+			So(len(svcs), ShouldEqual, len(unexpected))
+			for _, str := range unexpected {
+				So(svcs, ShouldContain, str)
+			}
+			// Tiny possibility of random failure.
+			So(svcs, ShouldNotResemble, unexpected)
+		})
+	})
+
 	Convey("Enumerating services", t, func() {
 		defer func() {
 			globServices = filepath.Glob
@@ -20,7 +45,9 @@ func TestSvRollout(t *testing.T) {
 
 		Convey("Should generate corrcect service names", func() {
 			So(err, ShouldBeNil)
-			So(svcs, ShouldResemble, []string{"borg-shopify-test-1", "borg-shopify-test-2"})
+			So(len(svcs), ShouldEqual, 2)
+			So(svcs, ShouldContain, "borg-shopify-test-1")
+			So(svcs, ShouldContain, "borg-shopify-test-2")
 		})
 	})
 

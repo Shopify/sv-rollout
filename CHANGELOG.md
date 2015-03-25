@@ -1,3 +1,7 @@
+# Unreleased
+
+* Randomize order of service restarts.
+
 # 1.0.3
 
 * Write failures and timeouts to STDERR.
