@@ -158,13 +158,8 @@ func (d *Deployment) restart(service string) error {
 	d.index++
 	index := d.index
 	d.Unlock()
-	svr := SvRestarter{
-		Service:   service,
-		nServices: d.numServices,
-		index:     index,
-		timeout:   d.timeout,
-	}
-	return restartSvr(&svr)
+	svr := NewSvRestarter(service, d.numServices, index, d.timeout)
+	return restartSvr(svr)
 }
 
 func chooseCanaries(services []string, ratio float64) (canaries []string, nonCanaries []string) {

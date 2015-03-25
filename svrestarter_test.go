@@ -3,6 +3,7 @@ package main
 import (
 	"os/exec"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -19,7 +20,7 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return nil, nil
 		}
-		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
+		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
 		Convey("the results channel should get a nil and a success message should be printed", func() {
 			err := svr.Restart()
 			So(err, ShouldBeNil)
@@ -36,7 +37,7 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return exec.Command("sh", "-c", "echo failed && false").Output()
 		}
-		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
+		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
 		Convey("the results channel should get an error and a message should be printed", func() {
 			err := svr.Restart()
 			So(err.(ErrRestartFailed), ShouldNotBeNil)
@@ -55,7 +56,7 @@ func TestSvRestarter(t *testing.T) {
 		restartCmd = func(t, s string) ([]byte, error) {
 			return exec.Command("sh", "-c", "echo 'timeout: run: stuff' && false").Output()
 		}
-		svr := SvRestarter{Service: "/etc/service/my-test-service", nServices: 3, index: 2, timeout: 1}
+		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
 		Convey("the results channel should get an error and a message should be printed", func() {
 			err := svr.Restart()
 			So(err.(ErrRestartTimeout), ShouldNotBeNil)
@@ -64,6 +65,30 @@ func TestSvRestarter(t *testing.T) {
 			})
 			So(errLogs, ShouldResemble, []string{
 				"[2/3] (/etc/service/my-test-service) did not restart in time",
+			})
+		})
+	})
+
+	Convey("When a service restart is preempted", t, func() {
+		outLogs = []string{}
+		errLogs = []string{}
+		restartCmd = func(t, s string) ([]byte, error) {
+			time.Sleep(1 * time.Second)
+			return nil, nil
+		}
+		svr := NewSvRestarter("/etc/service/my-test-service", 3, 2, 1)
+		Convey("the results channel should get a nil and a success message should be printed", func() {
+			go func() {
+				time.Sleep(50 * time.Millisecond)
+				svr.Preempt()
+			}()
+			err := svr.Restart()
+			So(err.(ErrRestartPreempted), ShouldNotBeNil)
+			So(outLogs, ShouldResemble, []string{
+				"[2/3] (/etc/service/my-test-service) restarting",
+			})
+			So(errLogs, ShouldResemble, []string{
+				"[2/3] (/etc/service/my-test-service) was not required to restart in time",
 			})
 		})
 	})

@@ -13,6 +13,17 @@ var ErrTooManyTimeouts = errors.New("too many services timed out while restartin
 // should be aborted.
 var ErrTooManyFailures = errors.New("too many services failed to restart")
 
+// ErrRestartPreempted happens when we terminate the deploy early due to a
+// sufficient number of services restarting successfully to consider the deploy
+// a success even if every remaining service times out.
+type ErrRestartPreempted struct {
+	Service string
+}
+
+func (e ErrRestartPreempted) Error() string {
+	return fmt.Sprintf("service '%s' didn't need to restart in time for the deploy to succeed so we stopped watching it", e.Service)
+}
+
 // ErrRestartTimeout indicates that a service restart timed out.
 type ErrRestartTimeout struct {
 	Service string
