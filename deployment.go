@@ -30,8 +30,10 @@ type Deployment struct {
 	timeoutsSoFar  int
 	failuresSoFar  int
 
-	servicesToRestart chan string
-	results           chan error
+	svrs []*SvRestarter
+
+	toRestart chan *SvRestarter
+	results   chan error
 
 	sync.Mutex
 }
@@ -53,7 +55,7 @@ func NewDeployment(services []string, config config) *Deployment {
 
 	d.postCanaryConcurrency = ceilRatio(d.postCanaryServices, config.ChunkRatio)
 
-	d.servicesToRestart = make(chan string, 8192)
+	d.toRestart = make(chan *SvRestarter, 8192)
 	d.results = make(chan error, 32)
 
 	if Verbose {
@@ -87,8 +89,8 @@ func (d *Deployment) startWorkers(n int) {
 }
 
 func (d *Deployment) startWorker() {
-	for service := range d.servicesToRestart {
-		d.results <- d.restart(service)
+	for svr := range d.toRestart {
+		d.results <- restartSvr(svr)
 	}
 }
 
@@ -99,9 +101,15 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 	if len(services) == 0 {
 		return nil
 	}
+
+	d.Lock()
 	for _, svc := range services {
-		d.servicesToRestart <- svc
+		d.index++
+		svr := NewSvRestarter(svc, d.numServices, d.index, d.timeout)
+		d.svrs = append(d.svrs, svr)
+		d.toRestart <- svr
 	}
+	d.Unlock()
 
 	for result := range d.results {
 		switch result.(type) {
@@ -151,15 +159,6 @@ func (d *Deployment) canarySuccessOK() bool {
 func (d *Deployment) allComplete() bool {
 	done := d.successesSoFar + d.timeoutsSoFar + d.failuresSoFar
 	return done == d.numServices
-}
-
-func (d *Deployment) restart(service string) error {
-	d.Lock()
-	d.index++
-	index := d.index
-	d.Unlock()
-	svr := NewSvRestarter(service, d.numServices, index, d.timeout)
-	return restartSvr(svr)
 }
 
 func chooseCanaries(services []string, ratio float64) (canaries []string, nonCanaries []string) {
