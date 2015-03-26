@@ -24,6 +24,8 @@ var (
 	stderrLogger = log.New(os.Stderr, "", log.LstdFlags)
 )
 
+// NewSvRestarter instantiates a restarter for a *single* service. It does not
+// restart right away -- you must call Restart for that.
 func NewSvRestarter(service string, nServices, index, timeout int) *SvRestarter {
 	return &SvRestarter{
 		Service:   service,
