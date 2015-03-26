@@ -24,13 +24,10 @@ build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
-build/bin/linux-amd64: $(GOFILES) version.go
+build/bin/linux-amd64: $(GOFILES)
 	if [ $(shell uname -s) != 'Linux' ] ; then \
 		GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" . ; else \
 		GOPATH=$(GODEP_PATH):$$GOPATH go build -o $@ . ; fi
-
-version.go: VERSION
-	@echo 'package main\n\n// VERSION is the current version from /VERSION\nconst VERSION string = "$(VERSION)"' > $@
 
 $(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)

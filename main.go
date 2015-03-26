@@ -4,8 +4,6 @@ supports canaries and has configurable tolerance for timeouts.
 */
 package main
 
-//go:generate make version.go
-
 import (
 	"flag"
 	"fmt"
