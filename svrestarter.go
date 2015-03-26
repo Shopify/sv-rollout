@@ -122,6 +122,6 @@ func _restartCmd(timeout, service string, preemptionAcceptable chan struct{}) ([
 // test stubs
 var (
 	stdoutLog  = stdoutLogger.Println
-	stderrLog  = stdoutLogger.Println
+	stderrLog  = stderrLogger.Println
 	restartCmd = _restartCmd
 )

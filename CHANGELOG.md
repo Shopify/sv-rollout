@@ -1,5 +1,7 @@
 # Unreleased
 
+* Print to STDERR instead of STDOUT on timeout or failure.
+
 # 1.1.0
 
 * Randomize order of service restarts.
