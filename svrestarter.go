@@ -109,7 +109,11 @@ func _restartCmd(timeout, service string, preemptionAcceptable chan struct{}) ([
 	out := bytes.NewBuffer(b)
 	cmd.Stderr = out
 	cmd.Stdout = out
-	cmd.Start()
+	err := cmd.Start()
+	if err != nil {
+		close(preemptionAcceptable)
+		return nil, err
+	}
 	go func() {
 		// I don't think we really have to wait before it's safe to quit, but just
 		// in case, this will certainly be more than enough time for `sv` to
@@ -117,7 +121,7 @@ func _restartCmd(timeout, service string, preemptionAcceptable chan struct{}) ([
 		time.Sleep(100 * time.Millisecond)
 		close(preemptionAcceptable)
 	}()
-	err := cmd.Wait()
+	err = cmd.Wait()
 	return out.Bytes(), err
 }
 
