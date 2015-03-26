@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math"
-	"sync"
 )
 
 // Deployment orchestrates the concurrent restarting of all the indicated
@@ -30,10 +29,10 @@ type Deployment struct {
 	timeoutsSoFar  int
 	failuresSoFar  int
 
-	servicesToRestart chan string
-	results           chan error
+	svrs []*SvRestarter
 
-	sync.Mutex
+	toRestart chan *SvRestarter
+	results   chan error
 }
 
 // NewDeployment initializes a Deployment object with a list of services
@@ -53,7 +52,7 @@ func NewDeployment(services []string, config config) *Deployment {
 
 	d.postCanaryConcurrency = ceilRatio(d.postCanaryServices, config.ChunkRatio)
 
-	d.servicesToRestart = make(chan string, 8192)
+	d.toRestart = make(chan *SvRestarter, 8192)
 	d.results = make(chan error, 32)
 
 	if Verbose {
@@ -87,8 +86,8 @@ func (d *Deployment) startWorkers(n int) {
 }
 
 func (d *Deployment) startWorker() {
-	for service := range d.servicesToRestart {
-		d.results <- d.restart(service)
+	for svr := range d.toRestart {
+		d.results <- restartSvr(svr)
 	}
 }
 
@@ -99,10 +98,15 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 	if len(services) == 0 {
 		return nil
 	}
+
 	for _, svc := range services {
-		d.servicesToRestart <- svc
+		d.index++
+		svr := NewSvRestarter(svc, d.numServices, d.index, d.timeout)
+		d.svrs = append(d.svrs, svr)
+		d.toRestart <- svr
 	}
 
+	remaining := len(services) // number of services yet to be processed.
 	for result := range d.results {
 		switch result.(type) {
 		case nil:
@@ -115,12 +119,23 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 			if err = d.incrementTimeouts(); err != nil {
 				return
 			}
+		case ErrRestartPreempted:
+			// no need to handle the error here because we pre-verified that it's ok
+			// before preempting the svr
+			_ = d.incrementTimeouts()
 		default:
 			panic(result)
 		}
 		if done() {
 			return nil
 		}
+
+		if d.currentTimeoutsPermitted >= remaining {
+			for _, svr := range d.svrs {
+				svr.Preempt()
+			}
+		}
+		remaining--
 	}
 
 	panic("unreachable")
@@ -151,20 +166,6 @@ func (d *Deployment) canarySuccessOK() bool {
 func (d *Deployment) allComplete() bool {
 	done := d.successesSoFar + d.timeoutsSoFar + d.failuresSoFar
 	return done == d.numServices
-}
-
-func (d *Deployment) restart(service string) error {
-	d.Lock()
-	d.index++
-	index := d.index
-	d.Unlock()
-	svr := SvRestarter{
-		Service:   service,
-		nServices: d.numServices,
-		index:     index,
-		timeout:   d.timeout,
-	}
-	return restartSvr(&svr)
 }
 
 func chooseCanaries(services []string, ratio float64) (canaries []string, nonCanaries []string) {

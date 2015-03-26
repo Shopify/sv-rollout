@@ -1,6 +1,9 @@
 # Unreleased
 
+# 1.1.0
+
 * Randomize order of service restarts.
+* [Timeout Preemption](https://github.com/Shopify/sv-rollout/pull/6)
 
 # 1.0.3
 
