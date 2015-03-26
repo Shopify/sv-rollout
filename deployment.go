@@ -106,10 +106,8 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 		d.toRestart <- svr
 	}
 
-	remaining := len(services) + 1 // number of services yet to be processed.
+	remaining := len(services) // number of services yet to be processed.
 	for result := range d.results {
-		remaining--
-
 		switch result.(type) {
 		case nil:
 			d.successesSoFar++
@@ -137,6 +135,7 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 				svr.Preempt()
 			}
 		}
+		remaining--
 	}
 
 	panic("unreachable")
