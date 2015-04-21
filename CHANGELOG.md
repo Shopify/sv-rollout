@@ -1,5 +1,8 @@
 # Unreleased
 
+# 1.1.1
+
+* Bump results channel size to possibly avoid deadlocks.
 * Print to STDERR instead of STDOUT on timeout or failure.
 
 # 1.1.0
