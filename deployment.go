@@ -53,7 +53,7 @@ func NewDeployment(services []string, config config) *Deployment {
 	d.postCanaryConcurrency = ceilRatio(d.postCanaryServices, config.ChunkRatio)
 
 	d.toRestart = make(chan *SvRestarter, 8192)
-	d.results = make(chan error, 32)
+	d.results = make(chan error, 1024)
 
 	if Verbose {
 		log.Printf("[debug] chose canaries: %v", d.canaryServices)
