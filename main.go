@@ -67,7 +67,7 @@ func configureStatsd() {
 		Namespace: "sv-rollout.",
 	})
 	if err != nil {
-		log.Error(err)
+		log.Println("Can't connect to statsd: ", err)
 	}
 }
 
