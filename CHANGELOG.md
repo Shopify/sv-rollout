@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.2.0
+
+* Add StatsD instrumentation for restart durations.
+
 # 1.1.1
 
 * Bump results channel size to possibly avoid deadlocks.
