@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/Shopify/go-dogstatsd"
 	"log"
 	"math/rand"
 	"os"
@@ -52,6 +53,24 @@ func (c config) AssertValid(pattern string) {
 	}
 }
 
+var (
+	// Statsd is a globally-shared datadog client.
+	Statsd *dogstatsd.Client
+)
+
+func configureStatsd() {
+	var err error
+	if Statsd != nil {
+		return
+	}
+	Statsd, err = dogstatsd.New("127.0.0.1:8125", &dogstatsd.Context{
+		Namespace: "sv-rollout.",
+	})
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano()) // init(), not main(), so that tests get it too.
 
@@ -67,6 +86,7 @@ func init() {
 }
 
 func main() {
+	configureStatsd()
 	var (
 		canaryRatio            = flag.Float64("canary-ratio", 0.001, "canary nodes are restarted first. If they fail, the deploy is failed. Rounded up to the nearest node, unless set to zero")
 		canaryTimeoutTolerance = flag.Float64("canary-timeout-tolerance", 0, "ratio of canary nodes that are permitted to time out without causing the deploy to fail")

@@ -45,7 +45,10 @@ func (s *SvRestarter) Restart() error {
 		err                  error
 		restartDone          = make(chan struct{})
 		preemptionAcceptable = make(chan struct{})
+		start                = time.Now()
+		tags                 []string
 	)
+
 	go func() {
 		out, err = restartCmd(fmt.Sprintf("%d", s.timeout), s.Service, preemptionAcceptable)
 		close(restartDone)
@@ -56,13 +59,21 @@ func (s *SvRestarter) Restart() error {
 		if err != nil {
 			if strings.Contains(string(out), "timeout: run: ") {
 				err = ErrRestartTimeout{Service: s.Service}
+				tags = append(tags, "status:timeout")
 			} else {
 				err = ErrRestartFailed{Service: s.Service, Message: string(out)}
+				tags = append(tags, "status:success")
 			}
 		}
 	case <-s.preempt:
 		<-preemptionAcceptable
 		err = ErrRestartPreempted{Service: s.Service}
+		tags = append(tags, "status:preempted")
+	}
+
+	if Statsd != nil {
+		tags = append(tags, "service:"+s.Service)
+		Statsd.Timer("service.restart", time.Since(start), tags, 1)
 	}
 
 	s.notifyResult(err)
