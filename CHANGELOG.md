@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.2.1
+
+* Add support for lockfile in /var/lock/dont-sv-rollout to prohibit sv-rollout from restarting services
+
 # 1.2.0
 
 * Add StatsD instrumentation for restart durations.

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"os"
 )
 
 // Deployment orchestrates the concurrent restarting of all the indicated
@@ -96,6 +97,12 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 	d.currentTimeoutsPermitted = timeoutsPermitted
 
 	if len(services) == 0 {
+		return nil
+	}
+
+	// Don't restart services when a lock is present
+	if _, err := os.Stat("/var/lock/dont-sv-rollout"); err == nil {
+		log.Println("don-restart lock present, not restarting services")
 		return nil
 	}
 
