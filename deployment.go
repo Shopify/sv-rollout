@@ -102,7 +102,7 @@ func (d *Deployment) restartServices(services []string, failuresPermitted, timeo
 
 	// Don't restart services when a lock is present
 	if _, err := os.Stat("/var/lock/dont-sv-rollout"); err == nil {
-		log.Println("don-restart lock present, not restarting services")
+		log.Println("/var/lock/dont-sv-rollout present, not restarting services")
 		return nil
 	}
 
