@@ -1,3 +1,4 @@
-sv-rollout
 /build/
 /pkg/
+/bin/
+._*
