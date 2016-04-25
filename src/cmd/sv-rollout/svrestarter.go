@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -49,6 +50,8 @@ func (s *SvRestarter) Restart() error {
 		tags                 []string
 	)
 
+	var rerr error
+
 	go func() {
 		out, err = restartCmd(fmt.Sprintf("%d", s.timeout), s.Service, preemptionAcceptable)
 		close(restartDone)
@@ -58,16 +61,16 @@ func (s *SvRestarter) Restart() error {
 	case <-restartDone:
 		if err != nil {
 			if strings.Contains(string(out), "timeout: run: ") {
-				err = ErrRestartTimeout{Service: s.Service}
+				rerr = ErrRestartTimeout{Service: s.Service}
 				tags = append(tags, "status:timeout")
 			} else {
-				err = ErrRestartFailed{Service: s.Service, Message: string(out)}
+				rerr = ErrRestartFailed{Service: s.Service, Message: string(out)}
 				tags = append(tags, "status:success")
 			}
 		}
 	case <-s.preempt:
 		<-preemptionAcceptable
-		err = ErrRestartPreempted{Service: s.Service}
+		rerr = ErrRestartPreempted{Service: s.Service}
 		tags = append(tags, "status:preempted")
 	}
 
@@ -76,8 +79,8 @@ func (s *SvRestarter) Restart() error {
 		Statsd.Timer("service.restart", time.Since(start), tags, 1)
 	}
 
-	s.notifyResult(err)
-	return err
+	s.notifyResult(rerr)
+	return rerr
 }
 
 // Preempt instructs an SvRestarter that it need not hang around waiting for a
@@ -102,6 +105,7 @@ func (s *SvRestarter) notifyResult(result error) {
 	case ErrRestartPreempted:
 		s.log("was not required to restart in time", true)
 	default:
+		s.log(fmt.Sprintf("Unexpected error handled, likely a bug: %s : %s", reflect.TypeOf(result).String(), result), true)
 		panic(result)
 	}
 }
@@ -132,6 +136,7 @@ func _restartCmd(timeout, service string, preemptionAcceptable chan struct{}) ([
 		time.Sleep(100 * time.Millisecond)
 		close(preemptionAcceptable)
 	}()
+
 	err = cmd.Wait()
 	return out.Bytes(), err
 }
