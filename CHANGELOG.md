@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.2.3
+
+* Fix race condition in preempt mode ( https://github.com/Shopify/sv-rollout/issues/9 ) causing panics
+
 # 1.2.2
 
 * Move from Godeps to gb 
