@@ -1,5 +1,14 @@
 # Unreleased
 
+# 1.2.2
+
+* Move from Godeps to gb 
+* Move source to `src/cmd` as part of gb migration
+* Vendor dependencies as git submodules and use Go1.5+ native vendoring support
+* Update dependencies
+* Add helper scripts for building,running etc in `scripts`
+* Remove OSX support
+
 # 1.2.1
 
 * Add support for lockfile in /var/lock/dont-sv-rollout to prohibit sv-rollout from restarting services

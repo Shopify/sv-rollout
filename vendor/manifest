@@ -1,0 +1,29 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/Shopify/go-dogstatsd",
+			"repository": "https://github.com/Shopify/go-dogstatsd",
+			"revision": "76f9377ffde254a7e012e7d422e8b8f9748571aa",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/jtolds/gls",
+			"repository": "https://github.com/jtolds/gls",
+			"revision": "8ddce2a84170772b95dd5d576c48d517b22cac63",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/smartystreets/assertions",
+			"repository": "https://github.com/smartystreets/assertions",
+			"revision": "40711f7748186bbf9c99977cd89f21ce1a229447",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/smartystreets/goconvey",
+			"repository": "https://github.com/smartystreets/goconvey",
+			"revision": "cc5d85f4f15bd2163abf0fe6e6753356dde72aa2",
+			"branch": "master"
+		}
+	]
+}

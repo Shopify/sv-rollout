@@ -1,0 +1,4 @@
+#!/bin/bash
+set -xe
+
+TESTMODE=true gb test -v ./... "$@"
