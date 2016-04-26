@@ -24,7 +24,7 @@ build/man/%.gz: man/%.ronn
 build/bin/linux-amd64:
 		script/compile
 
-$(DEB): man
+$(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
 	$(BUNDLE_EXEC) fpm \
 		-t deb \
@@ -41,10 +41,10 @@ $(DEB): man
 		--description="utility to restart multiple runit services concurrently" \
 		--url="https://github.com/Shopify/sv-rollout" \
 		./build/man/=/usr/share/man/ \
-		./$<=/usr/bin/$(NAME)
+		./bin/sv-rollout=/usr/bin/$(NAME)
 
 clean:
-	rm -rf bin pkg
+	rm -rf bin pkg build
 
 dependencies:
 	script/setup
