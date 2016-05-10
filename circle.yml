@@ -14,5 +14,5 @@ deployment:
     commands:
       - gem install package_cloud
       - script/build
-      - PACKAGE=$(ls pkg|grep deb) && PACKAGECLOUD_TOKEN=$PACKAGECLOUD_TOKEN package_cloud push --url https://packages.shopify.io shopify/stable/ubuntu/trusty pkg/$PACKAGE
-      - PACKAGE=$(ls pkg|grep deb) && PACKAGECLOUD_TOKEN=$PACKAGECLOUD_TOKEN package_cloud push --url https://packages.shopify.io shopify/stable/ubuntu/precise pkg/$PACKAGE
+      - PACKAGE=$(ls pkg|grep deb) && PACKAGECLOUD_TOKEN=$PACKAGECLOUD_TOKEN package_cloud push --url https://packages.shopify.io shopify/public/ubuntu/trusty pkg/$PACKAGE
+      - PACKAGE=$(ls pkg|grep deb) && PACKAGECLOUD_TOKEN=$PACKAGECLOUD_TOKEN package_cloud push --url https://packages.shopify.io shopify/public/ubuntu/precise pkg/$PACKAGE
