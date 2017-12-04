@@ -16,7 +16,3 @@ commands:
   test:
     run: gb test ./...
     desc: 'run unit tests'
-
-packages:
-  - git@github.com:Shopify/dev-shopify.git
-
